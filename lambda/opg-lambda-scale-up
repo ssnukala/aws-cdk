@@ -1,0 +1,23 @@
+from collections import defaultdict
+import boto3
+import time
+import json
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+
+def lambda_handler(event, context):
+    logger.info('Got Start event{} from APIGateway'.format(event))
+    client = boto3.client('rds')
+    response = client.describe_db_instances()
+    print('Current RDS instances: ' + str(response))
+    for i in response['DBInstances']:
+        print('staring dbinstance ' + str(i['DBInstanceIdentifier']))
+        client.start_db_instance(
+            DBInstanceIdentifier=i['DBInstanceIdentifier'])
+        print('started dbinstance ' + str(i['DBInstanceIdentifier']))
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Successfully received your start request')
+    }

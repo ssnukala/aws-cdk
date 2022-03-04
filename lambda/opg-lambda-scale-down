@@ -1,0 +1,57 @@
+import boto3
+import json
+import logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+
+def lambda_handler(event, context):
+    logger.info('Got stopping event{}'.format(event))
+
+    # STOPPING RDS INSTANCES
+    client = boto3.client('rds')
+    response = client.describe_db_instances()
+
+    for i in response['DBInstances']:
+        print('DB instances: ' + str(i))
+        if(i['DBInstanceStatus'].__eq__('available')):
+            print('stopping dbinstance ' + str(i['DBInstanceIdentifier']))
+            client.stop_db_instance(
+                DBInstanceIdentifier=i['DBInstanceIdentifier'])
+            print('stopped dbinstance ' + str(i['DBInstanceIdentifier']))
+
+    # STOPPING ASG INSTANCES
+    asGroupNames = ['ASG-ECS-Manual-Local-Server', 'ASG-Nexus']
+    asclient = boto3.client('autoscaling')
+    for asi in asGroupNames:
+        print('stopping ASG : ' + str(asi))
+        response = asclient.set_desired_capacity(
+            AutoScalingGroupName=str(asi),
+            DesiredCapacity=0
+        )
+
+    # STOPPING EC2 INSTANCES
+    instanceIds = ['i-074b269dfc78db87e']
+    ec2Client = boto3.client('ec2')
+    ec2Client.stop_instances(InstanceIds=instanceIds)
+
+    # STOPPING ECS INSTANCES
+    ecsClient = boto3.client('ecs')
+    clusterName = "swish-dev-cluster"
+    service_desired_count = 0
+    response = ecsClient.list_services(cluster=clusterName, maxResults=100)
+    serviceNames = ["datalistner-dev-fgt", "emaillistener-dev-fgt", "data-dev-fgt", "web-dev-fgt", "sdk-dev-fgt",
+                    "main-dev-fgt", "identity-dev-fgt",  "config-dev-fargate", "metadata-dev-fgt", "datalistner-dev-fgt"]
+
+    for serviceName in serviceNames:
+        ecsClient.update_service(
+            cluster=clusterName,
+            service=serviceName,
+            desiredCount=service_desired_count
+        )
+
+        print('service stopped : ' + serviceName)
+        return {
+            'statusCode': 200,
+            'body': json.dumps('Successfully Stopped ECS and EC2 instances')
+        }
