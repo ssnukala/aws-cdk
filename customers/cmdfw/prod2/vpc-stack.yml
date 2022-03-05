@@ -1,0 +1,129 @@
+## This stack will create VPC, Subnets, SecurityGroups etc
+stackName: ${CDK_PFIX}-${CDK_ENV}-core-vpc-stack
+region: ${CDK_REGION}
+accountId: ${CDK_ENV}.accountid
+tags:
+    cost.center: ${CDK_ENV}
+    dept.name: ${CDK_ENV}
+    org.name: ${CDK_ORG}
+
+name: ${CDK_PFIX}-${CDK_ENV}-vpc
+ssmKey: /${CDK_PFIX}/${CDK_ENV}/vpc/id
+cidr: "10.0.0.0/16"
+maxAzs: 2
+natGW: 1
+subnets:
+    - name: ${CDK_PFIX}-${CDK_ENV}-public-subnet
+      type: public
+      cidrMask: 24
+    - name: ${CDK_PFIX}-${CDK_ENV}-isolated-subnet
+      type: isolated
+      cidrMask: 24
+    - name: ${CDK_PFIX}-${CDK_ENV}-private-subnet
+      type: private
+      cidrMask: 24
+
+securityGroups:
+    - name: ${CDK_PFIX}-${CDK_ENV}-noops-sg
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sg/noops
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-bastian-sg
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sg/bastian
+      securityGroupIngress:
+      - source: 0.0.0.0/0
+        fromPort: 22
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-nexus-sg
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sg/nexus
+      securityGroupIngress:
+      - source: 0.0.0.0/0
+        fromPort: 80
+      - source: 0.0.0.0/0
+        fromPort: 443
+      - source: ${CDK_PFIX}-${CDK_ENV}-bastian-sg
+        fromPort: 22
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-thirdparty-sg
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sg/thirdparty
+      securityGroupIngress:
+      - source: 0.0.0.0/0
+        fromPort: 443
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sg/alb-external
+      securityGroupIngress:
+          - source: 0.0.0.0/0
+            fromPort: 80
+          - source: 0.0.0.0/0
+            fromPort: 443
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-alb-internal-sg
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sg/alb-internal
+      securityGroupIngress:
+          - source: 0.0.0.0/0
+            fromPort: 9010
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-app-sg
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sg/app
+      securityGroupIngress:
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+            fromPort: 80
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+            fromPort: 443
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+            fromPort: 9000  # web
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+            fromPort: 9010  # config
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-internal-sg
+            fromPort: 9010  # config
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+            fromPort: 9020  # identity
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+            fromPort: 9030  # metadata
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+            fromPort: 9040  # data
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+            fromPort: 9050  # email listener
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+            fromPort: 9060  # data listener
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+            fromPort: 9070  # sdk
+          - source: ${CDK_PFIX}-${CDK_ENV}-alb-external-sg
+            fromPort: 9900  # main
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-rds-sg
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sg/rds
+      securityGroupIngress:
+      - source: ${CDK_PFIX}-${CDK_ENV}-bastian-sg
+        fromPort: 5432
+      - source: ${CDK_PFIX}-${CDK_ENV}-app-sg
+        fromPort: 5432
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-elasticcache-sg
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sg/elasticcache
+      securityGroupIngress:
+          - source: ${CDK_PFIX}-${CDK_ENV}-app-sg
+            fromPort: 6379
+
+vpcInterfaceEndPoints:
+    - name: ${CDK_PFIX}-${CDK_ENV}-ecr-endpoint
+      service: ecr
+      securityGroups: ${CDK_PFIX}-${CDK_ENV}-app-sg
+      subnetsType: private
+    - name: ${CDK_PFIX}-${CDK_ENV}-ecrapi-endpoint
+      service: ecr-api
+      securityGroups: ${CDK_PFIX}-${CDK_ENV}-app-sg
+      subnetsType: private
+    - name: ${CDK_PFIX}-${CDK_ENV}-secrets-endpoint
+      service: secretsmanager
+      securityGroups: ${CDK_PFIX}-${CDK_ENV}-app-sg
+      subnetsType: private
+    - name: ${CDK_PFIX}-${CDK_ENV}-logs-endpoint
+      service: logs
+      securityGroups: ${CDK_PFIX}-${CDK_ENV}-app-sg
+      subnetsType: private
+vpcGatewayEndPoints:
+    - name: ${CDK_PFIX}-${CDK_ENV}-s3-endpoint
+      service: S3
+      securityGroups: ${CDK_PFIX}-${CDK_ENV}-app-sg
+      subnetsType: private

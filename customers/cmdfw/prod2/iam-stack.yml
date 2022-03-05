@@ -1,0 +1,639 @@
+## This stack will create IAM role, policies, cognito
+stackName: ${CDK_PFIX}-${CDK_ENV}-core-iam-stack
+region: ${CDK_REGION}
+accountId: ${CDK_ENV}.accountid
+tags:
+    cost.center: ${CDK_ENV}
+    dept.name: ${CDK_ENV}
+    org.name: ${CDK_ORG}
+
+policies:
+    admin-policy-1:
+        name: ${CDK_PFIX}-${CDK_ENV}-admin-policy-1
+        documents:
+            cloudFormationPolicyDoc:
+                actions:
+                    - "cloudformation:DescribeStackEvents"
+                    - "cloudformation:GetTemplate"
+                    - "cloudformation:DeleteStack"
+                    - "cloudformation:CreateChangeSet"
+                    - "cloudformation:DescribeChangeSet"
+                    - "cloudformation:ExecuteChangeSet"
+                    - "cloudformation:DeleteChangeSet"
+                    - "cloudformation:DescribeStacks"
+                resources:
+                    - "arn:aws:cloudformation:*:${accountId}:stack/*/*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            cloudWatchPolicyDoc:
+                actions:
+                    - "cloudwatch:PutMetricAlarm"
+                    - "cloudwatch:DeleteAlarms"
+                    - "cloudwatch:DescribeAlarms"
+                    - "logs:CreateLogGroup"
+                    - "logs:PutRetentionPolicy"
+                    - "logs:Describe*"
+                    - "logs:Get*"
+                    - "logs:DeleteLogGroup"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            iamPolicyDoc:
+                actions:
+                    - "iam:CreateGroup"
+                    - "iam:DeleteGroup"
+                    - "iam:UpdateGroup"
+                    - "iam:CreateRole"
+                    - "iam:AttachRolePolicy"
+                    - "iam:PutRolePolicy"
+                    - "iam:Get*"
+                    - "iam:Detach*"
+                    - "iam:Delete*"
+                    - "iam:CreateInstanceProfile"
+                    - "iam:AddRoleToInstanceProfile"
+                    - "iam:RemoveRoleFromInstanceProfile"
+                    - "iam:CreatePolicy"
+                    - "iam:DeletePolicy"
+                    - "iam:ListPolicyVersions"
+                    - "iam:UntagRole"
+                    - "iam:TagRole"
+                    - "iam:UntagPolicy"
+                    - "iam:TagPolicy"
+                    - "iam:CreatePolicyVersion"
+                    - "iam:UpdateAssumeRolePolicy"
+                    - "iam:CreateServiceLinkedRole"
+                resources:
+                    - "arn:aws:iam::${accountId}:*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            iamPolicyDoc2:
+                actions:
+                    - "iam:PassRole"
+                resources:
+                    - "arn:aws:iam::${accountId}:role/opg*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            ec2PolicyDoc:
+                actions:
+                    - "ec2:AttachInternetGateway"
+                    - "ec2:ReleaseAddress"
+                    - "ec2:Associate*"
+                    - "ec2:Create*"
+                    - "ec2:DetachInternetGateway"
+                    - "ec2:AllocateAddress"
+                    - "ec2:Describe*"
+                    - "ec2:Disassociate*"
+                    - "ec2:Modify*"
+                    - "ec2:*"
+                    - "ec2:Delete*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            cognitoIdpPolicyDoc:
+                actions:
+                    - "cognito-idp:AdminCreateUser"
+                    - "cognito-idp:Get*"
+                    - "cognito-idp:AdminDeleteUser"
+                    - "cognito-idp:AdminSetUserPassword"
+                    - "cognito-identity:Get*"
+                    - "cognito-sync:Get*"
+                    - "mobileanalytics:PutEvents"
+                resources:
+                    - "*"
+            ssmPolicyDoc:
+                actions:
+                    - "ssm:DeleteParameter"
+                    - "ssm:PutParameter"
+                    - "ssm:AddTagsToResource"
+                    - "ssm:GetParameters"
+                    - "ssm:GetParameter"
+                    - "ssm:GetParametersByPath"
+                    - "ssm:StartSession"
+                    - "ssm:TerminateSession"
+                    - "ssm:Describe*"
+                    - "ssm:Get*"
+                    - "secretsmanager:DeleteSecret"
+                    - "secretsmanager:GetRandomPassword"
+                    - "secretsmanager:CreateSecret"
+                    - "secretsmanager:TagResource"
+                    - "secretsmanager:GetSecretValue"
+                    - "secretsmanager:PutSecretValue"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            asgPolicyDoc:
+                actions:
+                    - "autoscaling:CreateLaunchConfiguration"
+                    - "autoscaling:CreateAutoScalingGroup"
+                    - "autoscaling:DeleteLaunchConfiguration"
+                    - "autoscaling:UpdateAutoScalingGroup"
+                    - "autoscaling:DescribeAutoScalingGroups"
+                    - "autoscaling:DescribeLaunchConfigurations"
+                    - "autoscaling:DescribeScalingActivities"
+                    - "autoscaling:DeleteAutoScalingGroup"
+                    - "autoscaling:DescribeScheduledActions"
+                    - "application-autoscaling:Describe*"
+                    - "application-autoscaling:Register*"
+                    - "application-autoscaling:Put*"
+                    - "application-autoscaling:Deregister*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+
+    admin-policy-2:
+        name: ${CDK_PFIX}-${CDK_ENV}-admin-policy-2
+        documents:
+            albPolicyDoc:
+                actions:
+                    - "elasticloadbalancing:CreateLoadBalancer"
+                    - "elasticloadbalancing:DescribeLoadBalancers"
+                    - "elasticloadbalancing:ModifyLoadBalancerAttributes"
+                    - "elasticloadbalancing:DeleteLoadBalancer"
+                    - "elasticloadbalancing:CreateTargetGroup"
+                    - "elasticloadbalancing:DescribeTargetGroups"
+                    - "elasticloadbalancing:DeleteTargetGroup"
+                    - "elasticloadbalancing:ModifyTargetGroup"
+                    - "elasticloadbalancing:DescribeListeners"
+                    - "elasticloadbalancing:CreateListener"
+                    - "elasticloadbalancing:DeleteListener"
+                    - "elasticloadbalancing:ModifyListener"
+                    - "elasticloadbalancing:AddTags"
+                    - "elasticloadbalancing:*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            ecsPolicyDoc:
+                actions:
+                    - "ecs:DescribeClusters"
+                    - "ecs:CreateCluster"
+                    - "ecs:DeleteCluster"
+                    - "ecs:RegisterTaskDefinition"
+                    - "ecs:CreateService"
+                    - "ecs:DescribeServices"
+                    - "ecs:DeleteService"
+                    - "ecs:DescribeTaskDefinition"
+                    - "ecs:DeregisterTaskDefinition"
+                    - "ecs:UpdateService"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            ecrPolicyDoc:
+                actions:
+                    - "ecr:DeleteRepository"
+                    - "ecr:CreateRepository"
+                    - "ecr:GetAuthorizationToken"
+                    - "ecr:DescribeRepositories"
+                    - "ecr:BatchGetImage"
+                    - "ecr:BatchCheckLayerAvailability"
+                    - "ecr:CompleteLayerUpload"
+                    - "ecr:GetDownloadUrlForLayer"
+                    - "ecr:InitiateLayerUpload"
+                    - "ecr:PutImage"
+                    - "ecr:UploadLayerPart"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            s3PolicyDoc:
+                actions:
+                    - "s3:Delete*"
+                    - "s3:Get*"
+                    - "s3:List*"
+                    - "s3:Put*"
+                    - "s3:Create*"
+                resources:
+                    - "*"
+            snsPolicyDoc:
+                actions:
+                    - "SNS:Get*"
+                    - "SNS:Delete*"
+                    - "SNS:Create*"
+                    - "SNS:Subscribe"
+                    - "SNS:Unsubscribe"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            sqsPolicyDoc:
+                actions:
+                    - "SQS:Get*"
+                    - "SQS:Delete*"
+                    - "SQS:Create*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            rdsPolicyDoc:
+                actions:
+                    - "rds:Modify*"
+                    - "rds:Delete*"
+                    - "rds:Create*"
+                    - "rds:AddTags*"
+                    - "rds:Describe*"
+                    - "rds:RestoreDB*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            elasticachePolicyDoc:
+                actions:
+                    - "elasticache:Modify*"
+                    - "elasticache:Delete*"
+                    - "elasticache:Create*"
+                    - "elasticache:Add*"
+                    - "elasticache:Describe*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            lambdaPolicyDoc:
+                actions:
+                    - "lambda:Update*"
+                    - "lambda:Delete*"
+                    - "lambda:Get*"
+                    - "lambda:Create*"
+                    - "lambda:Add*"
+                    - "lambda:Invoke*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            elasticSearchPolicyDoc:
+                actions:
+                    - "es:Update*"
+                    - "es:Delete*"
+                    - "es:Get*"
+                    - "es:Create*"
+                    - "es:Add*"
+                    - "es:Desc*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+            cloudFrontPolicyDoc:
+                actions:
+                    - "cloudfront:Update*"
+                    - "cloudfront:Delete*"
+                    - "cloudfront:Get*"
+                    - "cloudfront:Create*"
+                    - "cloudfront:Desc*"
+                    - "cloudfront:TagResource"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": [
+                                "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-admin-role",
+                                "arn:aws:iam::${accountId}:group/${CDK_PFIX}-${CDK_ENV}-admin-group",
+                                "arn:aws:iam::${accountId}:user/*.${CDK_ORG}"
+                        ]
+                    }
+
+    dev-policy:
+        name: ${CDK_PFIX}-${CDK_ENV}-dev-policy
+        documents:
+            s3PolicyDoc:
+                actions:
+                    - "s3:Get*"
+                    - "s3:List*"
+                resources:
+                    - "arn:aws:s3:::${accountId}:opg*/*"
+                conditions:
+                    Bool: {
+                        "aws:MultiFactorAuthPresent": "true"
+                    }
+            ec2PolicyDoc:
+                actions:
+                    - "ec2:Describe*"
+                resources:
+                    - "*"
+                conditions:
+                    Bool: {
+                        "aws:MultiFactorAuthPresent": "true"
+                    }
+            cloudWatchLog:
+                actions:
+                    - "logs:List*"
+                    - "logs:Describe*"
+                resources:
+                    - "*"
+                conditions:
+                    Bool: {
+                        "aws:MultiFactorAuthPresent": "true"
+                    }
+
+    comp-policy:
+        name: ${CDK_PFIX}-${CDK_ENV}-comp-policy
+        documents:
+            s3PolicyDoc:
+                actions:
+                    - "s3:Get*"
+                    - "s3:List*"
+                resources:
+                    - "arn:aws:s3:::${accountId}:opg*/*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
+                    }
+            ec2PolicyDoc:
+                actions:
+                    - "ec2:Describe*"
+                    - "ec2:Start*"
+                    - "ec2:Stop*"
+                    - "ec2:Rebbot*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
+                    }
+            ssmPolicyDoc:
+                actions:
+                    - "ssm:DeleteParameter"
+                    - "ssm:PutParameter"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
+                    }
+            ecsTaskExecPolicyDoc:
+                actions:
+                    - "ecr:GetAuthorizationToken"
+                    - "ecr:BatchCheckLayerAvailability"
+                    - "ecr:GetDownloadUrlForLayer"
+                    - "ecr:BatchGetImage"
+                    - "ecr:InitiateLayerUpload"
+                    - "ecr:PutImage"
+                    - "ecr:UploadLayerPart"
+                    - "ecr:CompleteLayerUpload"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
+                    }
+            cloudWatchPolicyDoc:
+                actions:
+                    - "logs:List*"
+                    - "logs:Describe*"
+                    - "logs:Update*"
+                    - "logs:Create*"
+                    - "logs:Put*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
+                    }
+            sqsPolicyDoc:
+                actions:
+                    - "sqs:Get*"
+                    - "sqs:Send*"
+                    - "sqs:Receive*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
+                    }
+
+    mfa-policy:
+        name: ${CDK_PFIX}-${CDK_ENV}-mfa-policy
+        documents:
+            allowAllUsersToListAccountsDoc:
+                actions:
+                    - "iam:ListAccountAliases"
+                    - "iam:ListUsers"
+                resources:
+                    - "arn:aws:iam::*:user/*"
+            allowIndividualUserToSeeTheirAccountInformationDoc:
+                actions:
+                    - "iam:GetAccountPasswordPolicy"
+                    - "iam:GetAccountSummary"
+                    - "iam:GetLoginProfile"
+                resources:
+                    - "arn:aws:iam::*:user/${aws:username}"
+            allowIndividualUserToListTheirMFADoc:
+                actions:
+                    - "iam:ListVirtualMFADevices"
+                    - "iam:ListMFADevices"
+                resources:
+                    - "arn:aws:iam::*:mfa/*"
+                    - "arn:aws:iam::*:user/${aws:username}"
+            allowIndividualUserToManageThierMFADoc:
+                actions:
+                    - "iam:CreateVirtualMFADevice"
+                    - "iam:DeactivateMFADevice"
+                    - "iam:DeleteVirtualMFADevice"
+                    - "iam:EnableMFADevice"
+                    - "iam:ResyncMFADevice"
+                resources:
+                    - "arn:aws:iam::*:mfa/${aws:username}"
+                    - "arn:aws:iam::*:user/${aws:username}"
+            doNotAllowAnythingOtherThanAboveUnlessMFADoc:
+                effect: "Deny"
+                notActions:
+                    - "iam:*"
+                resources:
+                    - "*"
+                conditions:
+                    Bool: {
+                        "aws:MultiFactorAuthPresent": "false"
+                    }
+
+    ssm-session-policy:
+        name: ${CDK_PFIX}-${CDK_ENV}-ssm-session-policy
+        documents:
+            ssmPolicyDoc:
+                actions:
+                    - "ssm:DescribeAssociation"
+                    - "ssm:GetDeployablePatchSnapshotForInstance"
+                    - "ssm:GetDocument"
+                    - "ssm:DescribeDocument"
+                    - "ssm:GetManifest"
+                    - "ssm:GetParameter"
+                    - "ssm:GetParameters"
+                    - "ssm:ListAssociations"
+                    - "ssm:ListInstanceAssociations"
+                    - "ssm:PutInventory"
+                    - "ssm:PutComplianceItems"
+                    - "ssm:PutConfigurePackageResult"
+                    - "ssm:UpdateAssociationStatus"
+                    - "ssm:UpdateInstanceAssociationStatus"
+                    - "ssm:UpdateInstanceInformation"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
+                    }
+            ssmMessagePolicyDoc:
+                actions:
+                    - "ssmmessages:CreateControlChannel"
+                    - "ssmmessages:CreateDataChannel"
+                    - "ssmmessages:OpenControlChannel"
+                    - "ssmmessages:OpenDataChannel"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
+                    }
+            ec2MessagePolicyDoc:
+                actions:
+                    - "ec2messages:AcknowledgeMessage"
+                    - "ec2messages:DeleteMessage"
+                    - "ec2messages:FailMessage"
+                    - "ec2messages:GetEndpoint"
+                    - "ec2messages:GetMessages"
+                    - "ec2messages:SendReply"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
+                    }
+
+roles:
+    - name: ${CDK_PFIX}-${CDK_ENV}-admin-role  # Admin role #
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/iam/role/admin
+      assumedBy:
+          - ec2.amazonaws.com
+          - ecs.application-autoscaling.amazonaws.com
+      policies:
+        - ${CDK_PFIX}-${CDK_ENV}-admin-policy-1
+        - ${CDK_PFIX}-${CDK_ENV}-admin-policy-2
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-dev-role     # Dev role #
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/iam/role/dev
+      policies:
+        - ${CDK_PFIX}-${CDK_ENV}-dev-policy
+      assumedBy:
+          - ec2.amazonaws.com
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-comp-role    # Comp role #
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/iam/role/comp
+      policies:
+        - ${CDK_PFIX}-${CDK_ENV}-comp-policy
+        - ${CDK_PFIX}-${CDK_ENV}-ssm-session-policy
+      assumedBy:
+          - ec2.amazonaws.com
+          - s3.amazonaws.com
+          - ecs-tasks.amazonaws.com
+
+groups:
+    - name: ${CDK_PFIX}-${CDK_ENV}-admin-group    # Admin Group #
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/iam/group/admin
+      policies:
+          - ${CDK_PFIX}-${CDK_ENV}-admin-policy-1
+          - ${CDK_PFIX}-${CDK_ENV}-admin-policy-2
+          - ${CDK_PFIX}-${CDK_ENV}-mfa-policy
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-dev-group    # Dev Group #
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/iam/group/dev
+      policies:
+          - ${CDK_PFIX}-${CDK_ENV}-dev-policy
+          - ${CDK_PFIX}-${CDK_ENV}-mfa-policy
