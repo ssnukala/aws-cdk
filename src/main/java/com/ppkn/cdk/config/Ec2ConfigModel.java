@@ -46,7 +46,9 @@ public class Ec2ConfigModel extends AbstractConfigModel{
             this.role = replacePlaceHolders(this.role);
             this.keypair = replacePlaceHolders(this.keypair);
 
-            alarms.forEach(ec2AlarmModel -> ec2AlarmModel.processPlaceHolders(parameters));
+            if( alarms != null && !alarms.isEmpty()) {
+                alarms.forEach(ec2AlarmModel -> ec2AlarmModel.processPlaceHolders(parameters));
+            }
         }
     }
 
