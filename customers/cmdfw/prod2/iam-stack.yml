@@ -89,7 +89,7 @@ policies:
                 actions:
                     - "iam:PassRole"
                 resources:
-                    - "arn:aws:iam::${accountId}:role/opg*"
+                    - "arn:aws:iam::${accountId}:role/${CDK_PFIX}*"
                 conditions:
                     StringLike: {
                         "aws:PrincipalArn": [
@@ -399,7 +399,7 @@ policies:
                     - "s3:Get*"
                     - "s3:List*"
                 resources:
-                    - "arn:aws:s3:::${accountId}:opg*/*"
+                    - "arn:aws:s3:::${accountId}:${CDK_PFIX}*/*"
                 conditions:
                     Bool: {
                         "aws:MultiFactorAuthPresent": "true"
@@ -432,7 +432,7 @@ policies:
                     - "s3:Get*"
                     - "s3:List*"
                 resources:
-                    - "arn:aws:s3:::${accountId}:opg*/*"
+                    - "arn:aws:s3:::${accountId}:${CDK_PFIX}*/*"
                 conditions:
                     StringLike: {
                         "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
