@@ -91,5 +91,67 @@
     "us-east-1d",
     "us-east-1e",
     "us-east-1f"
-  ]
+  ],
+  "vpc-provider:account=987024536637:filter.tag:Name=cmdfw-prod2-vpc:region=us-east-1:returnAsymmetricSubnets=true": {
+    "vpcId": "vpc-067d4cbd82fcab0d2",
+    "vpcCidrBlock": "192.168.0.0/16",
+    "availabilityZones": [],
+    "subnetGroups": [
+      {
+        "name": "cmdfw-prod2-isolated-subnet2",
+        "type": "Isolated",
+        "subnets": [
+          {
+            "subnetId": "subnet-0de1ae34c290d7d64",
+            "cidr": "192.168.2.0/24",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-0daa49b8c022fe769"
+          },
+          {
+            "subnetId": "subnet-0c6d701e91c934768",
+            "cidr": "192.168.3.0/24",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0c24c45e8da42618d"
+          }
+        ]
+      },
+      {
+        "name": "cmdfw-prod2-public-subnet1",
+        "type": "Public",
+        "subnets": [
+          {
+            "subnetId": "subnet-0984997a2156bc949",
+            "cidr": "192.168.0.0/24",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-03774dd2584ae7668"
+          },
+          {
+            "subnetId": "subnet-0b0c637633c1c9326",
+            "cidr": "192.168.1.0/24",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0cedf951b6fe77a05"
+          }
+        ]
+      },
+      {
+        "name": "cmdfw-prod2-private-subnet3",
+        "type": "Private",
+        "subnets": [
+          {
+            "subnetId": "subnet-070aee9b1e205f7f0",
+            "cidr": "192.168.4.0/24",
+            "availabilityZone": "us-east-1a",
+            "routeTableId": "rtb-08374aa0b8ffe5818"
+          },
+          {
+            "subnetId": "subnet-0d879dcba8468f595",
+            "cidr": "192.168.5.0/24",
+            "availabilityZone": "us-east-1b",
+            "routeTableId": "rtb-0fce2f0a6ea4776f9"
+          }
+        ]
+      }
+    ]
+  },
+  "ami:account=987024536637:filters.image-type.0=machine:filters.name.0=amzn2-ami-hvm-2.0.20210721.2-x86_64-gp2:filters.state.0=available:region=us-east-1": "ami-0c2b8ca1dad447f8a"
 }
