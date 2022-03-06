@@ -1,0 +1,57 @@
+## This stack will create ASG
+stackName: ${CDK_PFIX}-${CDK_ENV}-ec2-stack
+region: ${CDK_REGION}
+accountId: ${CDK_ENV}.accountid
+tags:
+    cost.center: ${CDK_ENV}
+    dept.name: ${CDK_ENV}
+    org.name: ${CDK_ORG}
+
+ec2:
+    - name: ${CDK_PFIX}-${CDK_ENV}-bastian-ec2
+      vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
+      subnetType: public
+      sg: /${CDK_PFIX}/${CDK_ENV}/sg/noops
+      role: /${CDK_PFIX}/${CDK_ENV}/iam/role/comp
+      ami: amzn2-ami-hvm-2.0.20210721.2-x86_64-gp2 # LinuxBastion-08-12-2021
+      instanceType: BURSTABLE2
+      instanceSize: NANO
+      keypair: ${CDK_PFIX}-${CDK_ENV}-ec2key1
+      autoScalingEnabled: false
+      alarms:
+          - name: ${CDK_PFIX}-${CDK_ENV}-bastian-ec2-low-cpu-alarm
+            threshold: 10  # CPU below 10 percent
+            dataPoints: 1
+            action: STOP # TERMINATE, REBOOT
+            metricName: CPUUtilization
+            metricPeriod: 15
+      userData: |
+          #!/bin/bash
+          sudo yum install -y ec2-instance-connect
+          sudo yum install -y docker
+          sudo service docker start
+          sudo usermod -a -G docker ec2-user
+          sudo amazon-linux-extras install -y postgresql13
+          sudo amazon-linux-extras install java-openjdk11
+          sudo yum install -y socat
+          sudo yum update -y
+    - name: ${CDK_PFIX}-${CDK_ENV}-nexus-ec2
+      vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
+      subnetType: public
+      sg: /${CDK_PFIX}/${CDK_ENV}/sg/nexus
+      role: /${CDK_PFIX}/${CDK_ENV}/iam/role/comp
+      ami: opg-dev2-nexus-2021-12-29 # Nexus-12-29-2021
+      instanceType: BURSTABLE2
+      instanceSize: LARGE
+      keypair: ${CDK_PFIX}-${CDK_ENV}-ec2key1
+      autoScalingEnabled: false
+      alarms:
+          - name: ${CDK_PFIX}-${CDK_ENV}-nexus-ec2-low-cpu-alarm
+            threshold: 5  # CPU below 5 percent
+            dataPoints: 1
+            action: STOP # TERMINATE, REBOOT
+            metricName: CPUUtilization
+            metricPeriod: 15
+      userData: |
+          #!/bin/bash
+          sudo yum update -y

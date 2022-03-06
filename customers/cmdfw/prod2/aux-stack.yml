@@ -1,0 +1,33 @@
+## This stack will create S3, SNS
+stackName: ${CDK_PFIX}-${CDK_ENV}-aux-stack
+region: ${CDK_REGION}
+accountId: ${CDK_ENV}.accountid
+tags:
+    cost.center: ${CDK_ENV}
+    dept.name: ${CDK_ENV}
+    org.name: ${CDK_ORG}
+
+elasticCache:
+    - name: ${CDK_PFIX}-${CDK_ENV}-swish-dev-redis
+      vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/cache/swish-dev-redis
+      engine: Redis
+      cacheNodeType: cache.m3.medium
+      numCacheNodes: 1
+      clusterName: swish-dev-redis
+      securityGroups:
+          - /${CDK_PFIX}/${CDK_ENV}/sg/elasticcache
+
+elasticSearch:
+    - name: ${CDK_PFIX}-${CDK_ENV}-search-dev3
+      vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/search/search-dev
+      slowSearchLogEnabled: false
+      appLogEnabled: false
+      slowIndexLogEnabled: false
+
+cloudFront:
+    - name: ${CDK_PFIX}-${CDK_ENV}-swishcrm-dev-cdn
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/cloudfront/search-dev
+      s3Bucket: /${CDK_PFIX}/${CDK_ENV}/s3/apps
+

@@ -1,0 +1,282 @@
+## This stack will create ECS
+stackName: ${CDK_PFIX}-${CDK_ENV}-ecs-stack
+region: ${CDK_REGION}
+accountId: ${CDK_ENV}.accountid
+tags:
+    cost.center: ${CDK_ENV}
+    dept.name: ${CDK_ENV}
+    org.name: ${CDK_ORG}
+
+ecs:
+    name: ${CDK_PFIX}-${CDK_ENV}-swish-cluster
+    vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
+    services:
+        - name: ${CDK_PFIX}-${CDK_ENV}-config-service
+          targetGroup: /${CDK_PFIX}/${CDK_ENV}/alb/tg/config
+          subnetType: private
+          securityGroups:
+            - /${CDK_PFIX}/${CDK_ENV}/sg/app
+          task:
+            name: ${CDK_PFIX}-${CDK_ENV}-config-task
+            cpu: 512
+            memory: 1024
+            role: arn:aws:iam::${accountId}:role/${CDK_PFIX}-dev2-comp-role
+            logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-config-service
+            streamPrefix: ${CDK_PFIX}-${CDK_ENV}-config
+            retentionDays: ONE_DAY
+            container:
+              name: config
+              ecrRepoName: config
+              tag: 1.0.0.1-snapshot
+              containerPort: 9010
+              hostPort: 9010
+              entryPoint:
+                  - "sh"
+                  - "-c"
+                  - "java -Djava.security.egd=file:/dev/./urandom -jar /swish-config.jar --config.sourceUrl=https://gitlab.com/swish/swish-config-dev.git --config.sourceUsername=${CDK_PFIX}-config-reader --config.sourcePassword=sanfrancisc00717 --secret.sourceUrl=s3://${CDK_PFIX}-dev2-apps"
+              environment:
+            autoScaling:
+              memUtilizationPercent: 75
+              cpuUtilizationPercent: 75
+              minCapacity: 1
+              maxCapacity: 3
+
+        - name: ${CDK_PFIX}-${CDK_ENV}-metadata-service
+          targetGroup: /${CDK_PFIX}/${CDK_ENV}/alb/tg/metadata
+          subnetType: private
+          securityGroups:
+              - /${CDK_PFIX}/${CDK_ENV}/sg/app
+          task:
+              name: ${CDK_PFIX}-${CDK_ENV}-metadata-task
+              cpu: 1024
+              memory: 4096
+              role: arn:aws:iam::${accountId}:role/${CDK_PFIX}-dev2-comp-role
+              logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-metadata-service
+              streamPrefix: ${CDK_PFIX}-${CDK_ENV}-metadata
+              retentionDays: ONE_DAY
+              container:
+                  name: metadata
+                  ecrRepoName: metadata
+                  tag: 1.0.0.2-snapshot
+                  containerPort: 9030
+                  hostPort: 9030
+                  entryPoint:
+                      - "sh"
+                      - "-c"
+                      - "java -Dspring.cloud.config.label=cdk -Djava.security.egd=file:/dev/./urandom -jar /swish-metadata.jar --config.serviceUrl=http://internal-${CDK_PFIX}-dev2-internal-swish-ecs-alb-334538112.us-west-2.elb.amazonaws.com:9010 --secret.sourceUrl=s3://${CDK_PFIX}-dev2-apps"
+                  environment:
+              autoScaling:
+                  memUtilizationPercent: 75
+                  cpuUtilizationPercent: 75
+                  minCapacity: 1
+                  maxCapacity: 3
+
+        - name: ${CDK_PFIX}-${CDK_ENV}-data-service
+          targetGroup: /${CDK_PFIX}/${CDK_ENV}/alb/tg/data
+          subnetType: private
+          securityGroups:
+              - /${CDK_PFIX}/${CDK_ENV}/sg/app
+          task:
+              name: ${CDK_PFIX}-${CDK_ENV}-data-task
+              cpu: 1024
+              memory: 4096
+              role: arn:aws:iam::${accountId}:role/${CDK_PFIX}-dev2-comp-role
+              logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-data-service
+              streamPrefix: ${CDK_PFIX}-${CDK_ENV}-data
+              retentionDays: ONE_DAY
+              container:
+                  name: data
+                  ecrRepoName: data
+                  tag: 1.0.0.1-snapshot
+                  containerPort: 9040
+                  hostPort: 9040
+                  entryPoint:
+                      - "sh"
+                      - "-c"
+                      - "java -Dspring.cloud.config.label=cdk -Djava.security.egd=file:/dev/./urandom -jar /swish-data.jar --config.serviceUrl=http://internal-${CDK_PFIX}-dev2-internal-swish-ecs-alb-334538112.us-west-2.elb.amazonaws.com:9010 --secret.sourceUrl=s3://${CDK_PFIX}-dev2-apps"
+                  environment:
+              autoScaling:
+                  memUtilizationPercent: 75
+                  cpuUtilizationPercent: 75
+                  minCapacity: 1
+                  maxCapacity: 3
+
+        - name: ${CDK_PFIX}-${CDK_ENV}-datalistener-service
+          targetGroup: /${CDK_PFIX}/${CDK_ENV}/alb/tg/datalistener
+          subnetType: private
+          securityGroups:
+              - /${CDK_PFIX}/${CDK_ENV}/sg/app
+          task:
+              name: ${CDK_PFIX}-${CDK_ENV}-datalistener-task
+              cpu: 256
+              memory: 2048
+              role: arn:aws:iam::${accountId}:role/${CDK_PFIX}-dev2-comp-role
+              logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-datalistener-service
+              streamPrefix: ${CDK_PFIX}-${CDK_ENV}-datalistener
+              retentionDays: ONE_DAY
+              container:
+                  name: datalistener
+                  ecrRepoName: data-listener
+                  tag: 1.0.0.1-snapshot
+                  containerPort: 9060
+                  hostPort: 9060
+                  entryPoint:
+                      - "sh"
+                      - "-c"
+                      - "java -Dspring.cloud.config.label=cdk -Djava.security.egd=file:/dev/./urandom -jar /swish-data-listener.jar --config.serviceUrl=http://internal-${CDK_PFIX}-dev2-internal-swish-ecs-alb-334538112.us-west-2.elb.amazonaws.com:9010 --secret.sourceUrl=s3://${CDK_PFIX}-dev2-apps"
+                  environment:
+              autoScaling:
+                  memUtilizationPercent: 75
+                  cpuUtilizationPercent: 75
+                  minCapacity: 1
+                  maxCapacity: 3
+
+        - name: ${CDK_PFIX}-${CDK_ENV}-emaillistener-service
+          targetGroup: /${CDK_PFIX}/${CDK_ENV}/alb/tg/emaillistener
+          subnetType: private
+          securityGroups:
+              - /${CDK_PFIX}/${CDK_ENV}/sg/app
+          task:
+              name: ${CDK_PFIX}-${CDK_ENV}-emaillistener-task
+              cpu: 256
+              memory: 2048
+              role: arn:aws:iam::${accountId}:role/${CDK_PFIX}-dev2-comp-role
+              logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-emaillistener-service
+              streamPrefix: ${CDK_PFIX}-${CDK_ENV}-emaillistener
+              retentionDays: ONE_DAY
+              container:
+                  name: emaillistener
+                  ecrRepoName: email-listener
+                  tag: 1.0.0.1-snapshot
+                  containerPort: 9050
+                  hostPort: 9050
+                  entryPoint:
+                      - "sh"
+                      - "-c"
+                      - "java -Dspring.cloud.config.label=cdk -Djava.security.egd=file:/dev/./urandom -jar /swish-email-listener.jar --config.serviceUrl=http://internal-${CDK_PFIX}-dev2-internal-swish-ecs-alb-334538112.us-west-2.elb.amazonaws.com:9010 --secret.sourceUrl=s3://${CDK_PFIX}-dev2-apps"
+                  environment:
+              autoScaling:
+                  memUtilizationPercent: 75
+                  cpuUtilizationPercent: 75
+                  minCapacity: 1
+                  maxCapacity: 3
+
+        - name: ${CDK_PFIX}-${CDK_ENV}-identity-service
+          targetGroup: /${CDK_PFIX}/${CDK_ENV}/alb/tg/identity
+          subnetType: private
+          securityGroups:
+              - /${CDK_PFIX}/${CDK_ENV}/sg/app
+          task:
+              name: ${CDK_PFIX}-${CDK_ENV}-identity-task
+              cpu: 512
+              memory: 2048
+              role: arn:aws:iam::${accountId}:role/${CDK_PFIX}-dev2-comp-role
+              logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-identity-service
+              streamPrefix: ${CDK_PFIX}-${CDK_ENV}-identity
+              retentionDays: ONE_DAY
+              container:
+                  name: identity
+                  ecrRepoName: identity
+                  tag: 1.0.0.2-snapshot
+                  containerPort: 9020
+                  hostPort: 9020
+                  entryPoint:
+                      - "sh"
+                      - "-c"
+                      - "java -Dspring.cloud.config.label=cdk -Djava.security.egd=file:/dev/./urandom -jar /swish-identity.jar --config.serviceUrl=http://internal-${CDK_PFIX}-dev2-internal-swish-ecs-alb-334538112.us-west-2.elb.amazonaws.com:9010 --secret.sourceUrl=s3://${CDK_PFIX}-dev2-apps"
+                  environment:
+              autoScaling:
+                  memUtilizationPercent: 75
+                  cpuUtilizationPercent: 75
+                  minCapacity: 1
+                  maxCapacity: 3
+
+        - name: ${CDK_PFIX}-${CDK_ENV}-web-service
+          targetGroup: /${CDK_PFIX}/${CDK_ENV}/alb/tg/web
+          subnetType: private
+          securityGroups:
+              - /${CDK_PFIX}/${CDK_ENV}/sg/app
+          task:
+              name: ${CDK_PFIX}-${CDK_ENV}-web-task
+              cpu: 1024
+              memory: 2048
+              role: arn:aws:iam::${accountId}:role/${CDK_PFIX}-dev2-comp-role
+              logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-web-service
+              streamPrefix: ${CDK_PFIX}-${CDK_ENV}-web
+              retentionDays: ONE_DAY
+              container:
+                  name: web
+                  ecrRepoName: web
+                  tag: 1.0.0.2-snapshot
+                  containerPort: 9000
+                  hostPort: 9000
+                  entryPoint:
+                      - "sh"
+                      - "-c"
+                      - "java -Dspring.cloud.config.label=cdk -Djava.security.egd=file:/dev/./urandom -jar /swish-web.jar --config.serviceUrl=http://internal-${CDK_PFIX}-dev2-internal-swish-ecs-alb-334538112.us-west-2.elb.amazonaws.com:9010 --secret.sourceUrl=s3://${CDK_PFIX}-dev2-apps"
+                  environment:
+              autoScaling:
+                  memUtilizationPercent: 75
+                  cpuUtilizationPercent: 75
+                  minCapacity: 1
+                  maxCapacity: 3
+
+        - name: ${CDK_PFIX}-${CDK_ENV}-sdk-service
+          targetGroup: /${CDK_PFIX}/${CDK_ENV}/alb/tg/sdk
+          subnetType: private
+          securityGroups:
+              - /${CDK_PFIX}/${CDK_ENV}/sg/app
+          task:
+              name: ${CDK_PFIX}-${CDK_ENV}-sdk-task
+              cpu: 1024
+              memory: 2048
+              role: arn:aws:iam::${accountId}:role/${CDK_PFIX}-dev2-comp-role
+              logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-sdk-service
+              streamPrefix: ${CDK_PFIX}-${CDK_ENV}-sdk
+              retentionDays: ONE_DAY
+              container:
+                  name: sdk
+                  ecrRepoName: sdk
+                  tag: 1.0.0.2-snapshot
+                  containerPort: 9070
+                  hostPort: 9070
+                  entryPoint:
+                      - "sh"
+                      - "-c"
+                      - "java -Dspring.cloud.config.label=cdk -Djava.security.egd=file:/dev/./urandom -jar /swish-sdk.jar --config.serviceUrl=http://internal-${CDK_PFIX}-dev2-internal-swish-ecs-alb-334538112.us-west-2.elb.amazonaws.com:9010 --secret.sourceUrl=s3://${CDK_PFIX}-dev2-apps"
+                  environment:
+              autoScaling:
+                  memUtilizationPercent: 75
+                  cpuUtilizationPercent: 75
+                  minCapacity: 1
+                  maxCapacity: 3
+
+        - name: ${CDK_PFIX}-${CDK_ENV}-main-service
+          targetGroup: /${CDK_PFIX}/${CDK_ENV}/alb/tg/main
+          subnetType: private
+          securityGroups:
+              - /${CDK_PFIX}/${CDK_ENV}/sg/app
+          task:
+              name: ${CDK_PFIX}-${CDK_ENV}-main-task
+              cpu: 1024
+              memory: 4096
+              role: arn:aws:iam::${accountId}:role/${CDK_PFIX}-dev2-comp-role
+              logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-main-service
+              streamPrefix: ${CDK_PFIX}-${CDK_ENV}-main
+              retentionDays: ONE_DAY
+              container:
+                  name: main
+                  ecrRepoName: main
+                  tag: 1.0.0.8-snapshot
+                  containerPort: 9900
+                  hostPort: 9900
+                  entryPoint:
+                      - "sh"
+                      - "-c"
+                      - "java -Dspring.cloud.config.label=cdk -Djava.security.egd=file:/dev/./urandom -jar /swish-main.jar --config.sourceUrl=https://gitlab.com/swish/swish-config-dev.git --config.sourceUsername=${CDK_PFIX}-config-reader --config.sourcePassword=sanfrancisc00717 --secret.sourceUrl=s3://${CDK_PFIX}-dev2-apps"
+                  environment:
+              autoScaling:
+                  memUtilizationPercent: 75
+                  cpuUtilizationPercent: 75
+                  minCapacity: 1
+                  maxCapacity: 3

@@ -1,0 +1,126 @@
+stackName: ${CDK_PFIX}-${CDK_ENV}-alb-stack
+region: ${CDK_REGION}
+accountId: ${CDK_ENV}.accountid
+tags:
+    cost.center: ${CDK_ENV}
+    dept.name: ${CDK_ENV}
+    org.name: ${CDK_ORG}
+
+albs:
+    - name: ${CDK_PFIX}-${CDK_ENV}-internal-swish-ecs-alb
+      vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/internal/dns
+      subnetType: private
+      securityGroups:
+          - /${CDK_PFIX}/${CDK_ENV}/sg/alb-internal
+      targetGroups:
+          - name: ${CDK_PFIX}-${CDK_ENV}-config-tg
+            ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/config
+            port: 9010
+            healthCheck: /config/env
+            intervalInSec: 30
+      listeners:
+          - name: ${CDK_PFIX}-${CDK_ENV}-http-listner
+            protocol: http
+            port: 9010
+            defaultTargetGroup: ${CDK_PFIX}-${CDK_ENV}-config-tg
+            rules:
+                - name: config
+                  path: /*
+                  priority: 1
+                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-config-tg
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-external-swish-ecs-alb
+      vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/external/dns
+      subnetType: public
+      securityGroups:
+          - /${CDK_PFIX}/${CDK_ENV}/sg/alb-external
+      targetGroups:
+          - name: ${CDK_PFIX}-${CDK_ENV}-web-tg
+            ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/web
+            port: 9000
+            healthCheck: /web/v1/public/healthCheck
+            intervalInSec: 120
+
+          - name: ${CDK_PFIX}-${CDK_ENV}-identity-tg
+            ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/identity
+            port: 9020
+            healthCheck: /identity/v1/public/healthCheck
+            intervalInSec: 120
+
+          - name: ${CDK_PFIX}-${CDK_ENV}-metadata-tg
+            ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/metadata
+            port: 9030
+            healthCheck: /metadata/v1/public/healthCheck
+            intervalInSec: 120
+
+          - name: ${CDK_PFIX}-${CDK_ENV}-data-tg
+            ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/data
+            port: 9040
+            healthCheck: /data/v1.0/public/healthCheck
+            intervalInSec: 120
+
+          - name: ${CDK_PFIX}-${CDK_ENV}-emaillistener-tg
+            ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/emaillistener
+            port: 9050
+            healthCheck: /email/v1.0/public/healthCheck
+            intervalInSec: 120
+
+          - name: ${CDK_PFIX}-${CDK_ENV}-datalistener-tg
+            ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/datalistener
+            port: 9060
+            healthCheck: /datalistener/v1.0/public/healthCheck
+            intervalInSec: 120
+
+          - name: ${CDK_PFIX}-${CDK_ENV}-sdk-tg
+            ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/sdk
+            port: 9070
+            healthCheck: /sdk/v1/public/healthCheck
+            intervalInSec: 120
+
+          - name: ${CDK_PFIX}-${CDK_ENV}-main-tg
+            ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/main
+            port: 9900
+            healthCheck: /main/v1.0/public/healthCheck
+            intervalInSec: 120
+      listeners:
+          - name: ${CDK_PFIX}-${CDK_ENV}-http-listner
+            protocol: http
+            port: 80
+            redirect: true
+          - name: ${CDK_PFIX}-${CDK_ENV}-https-listner
+            protocol: https
+            port: 443
+            defaultTargetGroup: ${CDK_PFIX}-${CDK_ENV}-web-tg
+            certificates:
+                - /${CDK_PFIX}/${CDK_ENV}/certs/cert1
+            rules:
+                - name: sdk
+                  path: /sdk/*
+                  priority: 1
+                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-sdk-tg
+                - name: datalistener
+                  path: /datalistener/*
+                  priority: 2
+                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-datalistener-tg
+                - name: email
+                  path: /email/*
+                  priority: 3
+                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-emaillistener-tg
+                - name: metadata
+                  path: /metadata/*
+                  priority: 4
+                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-metadata-tg
+                - name: data
+                  path: /data/*
+                  priority: 5
+                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-data-tg
+                - name: identity
+                  path: /identity/*
+                  priority: 6
+                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-identity-tg
+                - name: main
+                  path: /main/*
+                  priority: 7
+                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-main-tg

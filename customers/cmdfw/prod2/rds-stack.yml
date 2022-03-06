@@ -1,0 +1,23 @@
+## This stack will create RDS
+stackName: ${CDK_PFIX}-${CDK_ENV}-rds-stack
+region: ${CDK_REGION}
+accountId: ${CDK_ENV}.accountid
+tags:
+    cost.center: ${CDK_ENV}
+    dept.name: ${CDK_ENV}
+    org.name: ${CDK_ORG}
+
+rds:
+    - name: ${CDK_PFIX}-${CDK_ENV}-swish-rds
+      vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
+      subnetType: isolated
+      sg: /${CDK_PFIX}/${CDK_ENV}/sg/rds
+      instanceType: BURSTABLE3
+      instanceSize: MEDIUM
+      secretName: ${CDK_PFIX}-dev2-rds-swish-credn
+      port: 5432
+      allocatedStorage: 100
+      backupRetention: 3
+      snapshotIdentifier: swish-dev-rds-postgres-2022-01-28 # snapshot created 2021-12-27
+
+

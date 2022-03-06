@@ -1,0 +1,44 @@
+## This stack will create S3, SNS
+stackName: ${CDK_PFIX}-${CDK_ENV}-core-global-stack
+region: ${CDK_REGION}
+accountId: ${CDK_ENV}.accountid
+tags:
+    cost.center: ${CDK_ENV}
+    dept.name: ${CDK_ENV}
+    org.name: ${CDK_ORG}
+
+s3Buckets:
+    - name: ${CDK_PFIX}-${CDK_ENV}-apps
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/s3/apps
+sns:
+    - name: ${CDK_PFIX}-${CDK_ENV}-service-status
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sns/service-status
+      emailAddress:
+          - parthippkn@gmail.com
+          - sgnukala@gmail.com
+sqs:
+    - name: ${CDK_PFIX}-${CDK_ENV}-b2b_product_sqs
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sqs/b2b_product_sqs
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-b2b_account_sqs
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sqs/b2b_account_sqs
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-b2b_order_sqs
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sqs/b2b_order_sqs
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-b2b_users_sqs
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sqs/b2b_users_sqs
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-acme-history-dev
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sqs/acme-history-dev
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-swish-email-01
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sqs/swish-email-01
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-swish-fulfillment-queue
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sqs/swish-fulfillment-queue
+
+    - name: ${CDK_PFIX}-${CDK_ENV}-swish-recent-queue
+      ssmKey: /${CDK_PFIX}/${CDK_ENV}/sqs/swish-recent-queue
+
+
