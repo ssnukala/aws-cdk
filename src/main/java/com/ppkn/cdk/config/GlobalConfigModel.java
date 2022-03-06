@@ -19,8 +19,13 @@ public class GlobalConfigModel  extends AbstractConfigModel{
         super.setParameters(parameters);
         super.processPlaceHolders();
         s3Buckets.forEach(s3Model -> s3Model.processPlaceHolders(parameters));
-        sns.forEach(snsModel -> snsModel.processPlaceHolders(parameters));
-        sqs.forEach(sqsModel -> sqsModel.processPlaceHolders(parameters));
+        if( sns != null &&  !sns.isEmpty()) {
+            sns.forEach(snsModel -> snsModel.processPlaceHolders(parameters));
+        }
+        if ( sqs != null && !sqs.isEmpty()) {
+            sqs.forEach(sqsModel -> sqsModel.processPlaceHolders(parameters));
+        }
+
     }
 
     @Data
