@@ -8,16 +8,16 @@ tags:
     org.name: ${CDK_ORG}
 
 rds:
-    - name: ${CDK_PFIX}-${CDK_ENV}-swish-rds
+    - name: ${CDK_PFIX}-${CDK_ENV}-rds
       vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
       subnetType: isolated
       sg: /${CDK_PFIX}/${CDK_ENV}/sg/rds
       instanceType: BURSTABLE3
       instanceSize: MEDIUM
-      secretName: ${CDK_PFIX}-dev2-rds-swish-credn
+      secretName: ${CDK_PFIX}-dev2-rds-credn
       port: 5432
       allocatedStorage: 100
       backupRetention: 3
-      snapshotIdentifier: swish-dev-rds-postgres-2022-01-28 # snapshot created 2021-12-27
+      #snapshotIdentifier: swish-dev-rds-postgres-2022-01-28 # snapshot created 2021-12-27
 
 
