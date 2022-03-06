@@ -11,25 +11,25 @@ ecs:
     name: ${CDK_PFIX}-${CDK_ENV}-ecs-cluster
     vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
     services:
-        - name: ${CDK_PFIX}-${CDK_ENV}-config-service
-          targetGroup: /${CDK_PFIX}/${CDK_ENV}/alb/tg/config
+        - name: ${CDK_PFIX}-${CDK_ENV}-web-service
+          targetGroup: /${CDK_PFIX}/${CDK_ENV}/alb/tg/web
           subnetType: private
           securityGroups:
             - /${CDK_PFIX}/${CDK_ENV}/sg/app
           task:
-            name: ${CDK_PFIX}-${CDK_ENV}-config-task
-            cpu: 512
-            memory: 1024
+            name: ${CDK_PFIX}-${CDK_ENV}-web-task
+            cpu: 2048
+            memory: 4096
             role: arn:aws:iam::${accountId}:role/${CDK_PFIX}-prod2-comp-role
-            logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-config-service
-            streamPrefix: ${CDK_PFIX}-${CDK_ENV}-config
+            logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-web-service
+            streamPrefix: ${CDK_PFIX}-${CDK_ENV}-web
             retentionDays: ONE_DAY
             container:
-              name: config
-              ecrRepoName: config
-              tag: 1.0.0.1-snapshot
+              name: nginx
+              ecrRepoName: cmdfw.prod2.uf46msc-nginx
+              tag: 1.0.0.1
               containerPort: 80
-              hostPort: 8590
+              hostPort: 80
               entryPoint:
                   - "sh"
                   - "-c"

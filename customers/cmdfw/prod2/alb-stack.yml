@@ -31,31 +31,7 @@ albs:
             certificates:
                 - /${CDK_PFIX}/${CDK_ENV}/certs/cert1
             rules:
-                - name: sdk
-                  path: /sdk/*
+                - name: web
+                  path: /web/*
                   priority: 1
-                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-sdk-tg
-                - name: datalistener
-                  path: /datalistener/*
-                  priority: 2
-                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-datalistener-tg
-                - name: email
-                  path: /email/*
-                  priority: 3
-                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-emaillistener-tg
-                - name: metadata
-                  path: /metadata/*
-                  priority: 4
-                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-metadata-tg
-                - name: data
-                  path: /data/*
-                  priority: 5
-                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-data-tg
-                - name: identity
-                  path: /identity/*
-                  priority: 6
-                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-identity-tg
-                - name: main
-                  path: /main/*
-                  priority: 7
-                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-main-tg
+                  targetGroup: ${CDK_PFIX}-${CDK_ENV}-web-tg
