@@ -195,6 +195,10 @@ public class Ec2StackHandler implements AwsStackHandler {
         }
 
         private void createAlarm(Instance ec2Instance, Ec2ConfigModel.Ec2Model instanceConfigModel) {
+            if( instanceConfigModel.getAlarms()  == null ||  instanceConfigModel.getAlarms().isEmpty()) {
+                log.info("Alarm is empty for : {} ", ec2Instance.getInstanceId());
+                return;
+            }
             log.info("Creating alarm for instance id : {} ", ec2Instance.getInstanceId());
             Map<String, String> dimensionMap = new HashMap<>();
             dimensionMap.putIfAbsent("InstanceId", ec2Instance.getInstanceId());
