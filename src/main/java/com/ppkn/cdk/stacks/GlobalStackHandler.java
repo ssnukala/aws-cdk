@@ -77,8 +77,13 @@ public class GlobalStackHandler implements AwsStackHandler {
         public GlobalStack(final Construct scope, final String id, final StackProps props) {
             super(scope, id, props);
             createS3Buckets();
-            createSnsTopics();
-            createSqaQueues();
+            if( globalConfigModel.getSns() != null && !globalConfigModel.getSns().isEmpty()) {
+                createSnsTopics();
+            }
+            if( globalConfigModel.getSqs() != null && !globalConfigModel.getSqs().isEmpty()) {
+                createSqaQueues();
+            }
+
         }
 
         private void createSqaQueues() {
