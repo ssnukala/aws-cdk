@@ -9,6 +9,9 @@ import com.ppkn.cdk.config.StackEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import software.amazon.awscdk.core.*;
+import software.amazon.awscdk.services.ecr.Repository;
+import software.amazon.awscdk.services.ecr.RepositoryProps;
+import software.amazon.awscdk.services.ecr.TagMutability;
 import software.amazon.awscdk.services.s3.BlockPublicAccess;
 import software.amazon.awscdk.services.s3.Bucket;
 import software.amazon.awscdk.services.s3.BucketEncryption;
@@ -83,9 +86,21 @@ public class GlobalStackHandler implements AwsStackHandler {
             if( globalConfigModel.getSqs() != null && !globalConfigModel.getSqs().isEmpty()) {
                 createSqaQueues();
             }
-
+            if( globalConfigModel.getEcr() != null && !globalConfigModel.getEcr().isEmpty()) {
+                createEcr();
+            }
         }
 
+        private void createEcr() {
+            globalConfigModel.getEcr().forEach(ecrModel -> {
+                Repository repo = new Repository(this, ecrModel.getName(), RepositoryProps.builder()
+                        .repositoryName(ecrModel.getName())
+                        .imageScanOnPush(true)
+                        .imageTagMutability(TagMutability.IMMUTABLE)
+                        .build());
+                super.processTags(repo, ecrModel);
+            });
+        }
         private void createSqaQueues() {
             globalConfigModel.getSqs().forEach(sqsModel -> {
                 Queue queue = new Queue(this, sqsModel.getName(), QueueProps

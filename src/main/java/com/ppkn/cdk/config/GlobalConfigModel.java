@@ -14,6 +14,7 @@ public class GlobalConfigModel  extends AbstractConfigModel{
     private List<S3Model> s3Buckets;
     private List<SnsModel> sns;
     private List<SqsModel> sqs;
+    private List<EcrModel> ecr;
 
     public void processPlaceHolders(final Parameters parameters) {
         super.setParameters(parameters);
@@ -25,7 +26,9 @@ public class GlobalConfigModel  extends AbstractConfigModel{
         if ( sqs != null && !sqs.isEmpty()) {
             sqs.forEach(sqsModel -> sqsModel.processPlaceHolders(parameters));
         }
-
+        if ( ecr != null && !ecr.isEmpty()) {
+            ecr.forEach(ecrModel -> ecrModel.processPlaceHolders(parameters));
+        }
     }
 
     @Data
@@ -53,6 +56,15 @@ public class GlobalConfigModel  extends AbstractConfigModel{
     public static class SqsModel extends AbstractConfigModel {
         private boolean fifo = false;
         private int retentionPeriod = 7;
+        public void processPlaceHolders(final Parameters parameters) {
+            super.setParameters(parameters);
+        }
+    }
+
+    @Data
+    @ToString(callSuper = true)
+    @EqualsAndHashCode(callSuper = false)
+    public static class EcrModel extends AbstractConfigModel {
         public void processPlaceHolders(final Parameters parameters) {
             super.setParameters(parameters);
         }
