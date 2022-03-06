@@ -83,5 +83,13 @@
   "security-group:account=555994199423:region=us-west-2:securityGroupId=sg-07f92b0e7a48d35a0": {
     "securityGroupId": "sg-07f92b0e7a48d35a0",
     "allowAllOutbound": false
-  }
+  },
+  "availability-zones:account=987024536637:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ]
 }
