@@ -432,8 +432,9 @@ policies:
                 actions:
                     - "s3:Get*"
                     - "s3:List*"
+                    - "s3:Put*"
                 resources:
-                    - "arn:aws:s3:::${accountId}:${CDK_PFIX}*/*"
+                    - "*"
                 conditions:
                     StringLike: {
                         "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
@@ -500,7 +501,15 @@ policies:
                     StringLike: {
                         "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
                     }
-
+            secretsPolicyDoc:
+                actions:
+                    - "secretsmanager:Get*"
+                resources:
+                    - "*"
+                conditions:
+                    StringLike: {
+                        "aws:PrincipalArn": "arn:aws:iam::${accountId}:role/${CDK_PFIX}-${CDK_ENV}-comp-role"
+                    }
     mfa-policy:
         name: ${CDK_PFIX}-${CDK_ENV}-mfa-policy
         documents:
