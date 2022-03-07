@@ -57,20 +57,16 @@ public class EcsModel extends AbstractConfigModel{
         private String name;
         private String cpu;
         private String memory;
-        private String logGroup;
-        private String streamPrefix;
         private RetentionDays retentionDays;
         private String role;
-        private EcsContainerModel container;
+        private List<EcsContainerModel> containers;
         private EcsTaskAutoScalingModel autoScaling;
 
         public void processPlaceHolders(final Parameters parameters) {
             super.setParameters(parameters);
             this.name = replacePlaceHolders(this.name);
             this.role = replacePlaceHolders(this.role);
-            this.logGroup = replacePlaceHolders(this.logGroup);
-            this.streamPrefix = replacePlaceHolders(this.streamPrefix);
-            container.processPlaceHolders(parameters);
+            containers.forEach(ecsContainerModel -> ecsContainerModel.processPlaceHolders(parameters));
         }
     }
 
@@ -83,6 +79,10 @@ public class EcsModel extends AbstractConfigModel{
         private String tag;
         private int containerPort;
         private int hostPort;
+        private String logGroup;
+        private String streamPrefix;
+        private String cpu;
+        private String memory;
         private List<String> entryPoint;
         private Map<String, String> environment = new HashMap<>();
 
@@ -90,6 +90,8 @@ public class EcsModel extends AbstractConfigModel{
             super.setParameters(parameters);
             this.name = replacePlaceHolders(this.name);
             this.ecrRepoName = replacePlaceHolders(this.ecrRepoName);
+            this.logGroup = replacePlaceHolders(this.logGroup);
+            this.streamPrefix = replacePlaceHolders(this.streamPrefix);
         }
     }
 

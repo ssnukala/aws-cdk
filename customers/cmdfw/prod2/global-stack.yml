@@ -16,6 +16,6 @@ sns:
       emailAddress:
           - parthippkn@gmail.com
           - sgnukala@gmail.com
-ecr:
-  - name: ${CDK_PFIX}.${CDK_ENV}.uf46msc-app
-  - name: ${CDK_PFIX}.${CDK_ENV}.uf46msc-nginx
+#ecr:
+#  - name: ${CDK_PFIX}.${CDK_ENV}.uf46msc-app
+#  - name: ${CDK_PFIX}.${CDK_ENV}.uf46msc-nginx

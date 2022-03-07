@@ -8,7 +8,7 @@ tags:
     org.name: ${CDK_ORG}
 
 elasticCache:
-    - name: ${CDK_PFIX}-${CDK_ENV}-swish-dev-redis
+    - name: ${CDK_PFIX}-${CDK_ENV}-cmdfw-dev-redis
       vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
       ssmKey: /${CDK_PFIX}/${CDK_ENV}/cache/swish-dev-redis
       engine: Redis
@@ -27,7 +27,7 @@ elasticSearch:
       slowIndexLogEnabled: false
 
 cloudFront:
-    - name: ${CDK_PFIX}-${CDK_ENV}-swishcrm-dev-cdn
+    - name: ${CDK_PFIX}-${CDK_ENV}-cmdfw-dev-cdn
       ssmKey: /${CDK_PFIX}/${CDK_ENV}/cloudfront/search-dev
       s3Bucket: /${CDK_PFIX}/${CDK_ENV}/s3/apps
 

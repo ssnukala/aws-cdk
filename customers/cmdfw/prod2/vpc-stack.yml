@@ -9,7 +9,7 @@ tags:
 
 name: ${CDK_PFIX}-${CDK_ENV}-vpc
 ssmKey: /${CDK_PFIX}/${CDK_ENV}/vpc/id
-cidr: "192.168.0.0/16"
+cidr: "192.178.0.0/16"
 maxAzs: 2
 natGW: 1
 subnets:

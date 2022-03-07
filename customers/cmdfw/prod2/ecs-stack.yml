@@ -21,20 +21,34 @@ ecs:
             cpu: 2048
             memory: 4096
             role: arn:aws:iam::${accountId}:role/${CDK_PFIX}-prod2-comp-role
-            logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-web-service
-            streamPrefix: ${CDK_PFIX}-${CDK_ENV}-web
             retentionDays: ONE_DAY
-            container:
-              name: nginx
-              ecrRepoName: cmdfw.prod2.uf46msc-nginx
-              tag: 1.0.0.1
-              containerPort: 80
-              hostPort: 80
-              entryPoint:
-                  - "sh"
-                  - "-c"
-                  - "java -Djava.security.egd=file:/dev/./urandom -jar /ecs-config.jar --config.sourceUrl=https://gitlab.com/swish/swish-config-dev.git --config.sourceUsername=${CDK_PFIX}-config-reader --config.sourcePassword=sanfrancisc00717 --secret.sourceUrl=s3://${CDK_PFIX}-dev2-apps"
-              environment:
+            containers:
+              - name: app
+                cpu: 0
+                memory: 3072
+                ecrRepoName: cmdfw.prod2.uf46msc-app
+                tag: 1.0.0
+                containerPort: 9000
+                hostPort: 9000
+                logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-app-service
+                streamPrefix: ${CDK_PFIX}-${CDK_ENV}-app
+                entryPoint:
+                environment:
+                  AWS_SECRET_KEY: cmdfwmsc_cmdfw.prod2.01
+                  HOST_SERVER: aws
+                  SKIP_PERMISSION_CHECK: true
+                  UF_MODE: production
+              - name: nginx
+                cpu: 0
+                memory: 1024
+                ecrRepoName: cmdfw.prod2.uf46msc-nginx
+                tag: 1.0.0
+                containerPort: 80
+                hostPort: 80
+                logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-nginx-service
+                streamPrefix: ${CDK_PFIX}-${CDK_ENV}-nginx
+                entryPoint:
+                environment:
             autoScaling:
               memUtilizationPercent: 75
               cpuUtilizationPercent: 75

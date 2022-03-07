@@ -16,7 +16,7 @@ policies:
                     - "cloudformation:DescribeStackEvents"
                     - "cloudformation:GetTemplate"
                     - "cloudformation:DeleteStack"
-                    - "cloudformation:CreateChangeSet"
+                    - "cloudformation:Create*"
                     - "cloudformation:DescribeChangeSet"
                     - "cloudformation:ExecuteChangeSet"
                     - "cloudformation:DeleteChangeSet"
@@ -89,7 +89,7 @@ policies:
                 actions:
                     - "iam:PassRole"
                 resources:
-                    - "arn:aws:iam::${accountId}:role/${CDK_PFIX}*"
+                    - "arn:aws:iam::${accountId}:role/*"
                 conditions:
                     StringLike: {
                         "aws:PrincipalArn": [
@@ -227,6 +227,7 @@ policies:
                     - "ecs:DescribeTaskDefinition"
                     - "ecs:DeregisterTaskDefinition"
                     - "ecs:UpdateService"
+                    - "ecs:ListAccount*"
                 resources:
                     - "*"
                 conditions:

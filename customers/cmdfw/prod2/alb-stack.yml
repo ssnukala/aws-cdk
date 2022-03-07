@@ -16,7 +16,7 @@ albs:
       targetGroups:
           - name: ${CDK_PFIX}-${CDK_ENV}-web-tg
             ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/web
-            port: 8590
+            port: 80
             healthCheck: /web/v1/public/healthCheck
             intervalInSec: 120
       listeners:

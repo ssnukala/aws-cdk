@@ -187,12 +187,9 @@ public class EcsStackHandler implements AwsStackHandler {
         private TaskDefinition createTaskDefinition(final EcsModel ecsModel, final EcsModel.EcsServiceModel ecsServiceModel, final IVpc vpc) {
 
             EcsModel.EcsTaskModel ecsTaskModel = ecsServiceModel.getTask();
-            EcsModel.EcsContainerModel ecsContainerModel = ecsTaskModel.getContainer();
+
 
             IRole taskRole = Role.fromRoleArn(this, ecsServiceModel.getTask().getName(), ecsServiceModel.getTask().getRole());
-            IRepository repository = Repository.fromRepositoryName(this, ecsTaskModel.getName() + "-repo",
-                ecsServiceModel.getTask().getContainer().getEcrRepoName());
-            EcrImage ecrImage = RepositoryImage.fromEcrRepository(repository, ecsServiceModel.getTask().getContainer().getTag());
 
             TaskDefinition taskDefinition = new TaskDefinition(this, ecsTaskModel.getName() + "-task",
                 TaskDefinitionProps
@@ -206,39 +203,45 @@ public class EcsStackHandler implements AwsStackHandler {
                     .family(ecsTaskModel.getName())
                     .build());
 
-            List<PortMapping> portMappings = new ArrayList<>();
-            portMappings.add(new PortMapping() {
-                @Override
-                public @NotNull Number getContainerPort() {
-                    return ecsContainerModel.getContainerPort();
-                }
+             ecsTaskModel.getContainers().forEach(ecsContainerModel -> {
+                List<PortMapping> portMappings = new ArrayList<>();
+                portMappings.add(new PortMapping() {
+                    @Override
+                    public @NotNull Number getContainerPort() {
+                        return ecsContainerModel.getContainerPort();
+                    }
 
-                @Override
-                public @Nullable Number getHostPort() {
-                    return ecsContainerModel.getHostPort();
-                }
+                    @Override
+                    public @Nullable Number getHostPort() {
+                        return ecsContainerModel.getHostPort();
+                    }
+                });
+                 IRepository repository = Repository.fromRepositoryName(this, ecsContainerModel.getName() + "-repo",
+                         ecsContainerModel.getEcrRepoName());
+                 EcrImage ecrImage = RepositoryImage.fromEcrRepository(repository, ecsContainerModel.getTag());
+
+                 taskDefinition.addContainer(ecsContainerModel.getName(),
+                         ContainerDefinitionOptions.builder()
+                                 .containerName(ecsContainerModel.getName())
+                                 .image(ecrImage)
+                                 .portMappings(portMappings)
+                                 .cpu(Integer.valueOf(ecsContainerModel.getCpu()))
+                                 .memoryLimitMiB(Integer.valueOf(ecsContainerModel.getMemory()))
+                                 .logging(LogDriver.awsLogs(
+                                         AwsLogDriverProps.builder()
+                                                 .logGroup(new LogGroup(this, ecsContainerModel.getName()+"-log",
+                                                         LogGroupProps.builder()
+                                                                 .logGroupName(ecsContainerModel.getLogGroup())
+                                                                 .retention(ecsTaskModel.getRetentionDays())
+                                                                 .removalPolicy(RemovalPolicy.DESTROY)
+                                                                 .build()))
+                                                 .streamPrefix(ecsContainerModel.getStreamPrefix())
+                                                 .build()))
+                                 .entryPoint(ecsContainerModel.getEntryPoint())
+                                 .environment(ecsContainerModel.getEnvironment())
+                                 .build()
+                 );
             });
-
-            taskDefinition.addContainer(ecsContainerModel.getName(),
-                ContainerDefinitionOptions.builder()
-                    .containerName(ecsContainerModel.getName())
-                    .image(ecrImage)
-                    .portMappings(portMappings)
-                    .cpu(Integer.valueOf(ecsTaskModel.getCpu()))
-                    .memoryLimitMiB(Integer.valueOf(ecsTaskModel.getMemory()))
-                    .logging(LogDriver.awsLogs(AwsLogDriverProps.builder()
-                        .logGroup(new LogGroup(this, ecsTaskModel.getLogGroup()+"-log",
-                            LogGroupProps.builder()
-                                .logGroupName(ecsTaskModel.getLogGroup()+"-log")
-                                .retention(ecsTaskModel.getRetentionDays())
-                                .removalPolicy(RemovalPolicy.DESTROY)
-                                .build()))
-                        .streamPrefix(ecsTaskModel.getStreamPrefix())
-                        .build()))
-                    .entryPoint(ecsContainerModel.getEntryPoint())
-                    .build()
-            );
-
 
             Tags.of(taskDefinition).add("Name", ecsTaskModel.getName() + "-task");
             ecsConfigModel.getTags().forEach((key, value) -> {
