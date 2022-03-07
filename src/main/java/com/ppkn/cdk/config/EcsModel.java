@@ -55,8 +55,8 @@ public class EcsModel extends AbstractConfigModel{
     @EqualsAndHashCode(callSuper = false)
     public static class EcsTaskModel extends AbstractConfigModel {
         private String name;
-        private String cpu;
-        private String memory;
+        private int cpu;
+        private int memory;
         private RetentionDays retentionDays;
         private String role;
         private List<EcsContainerModel> containers;

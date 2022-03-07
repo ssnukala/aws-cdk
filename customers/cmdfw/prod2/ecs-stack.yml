@@ -27,12 +27,11 @@ ecs:
                 cpu: 0
                 memory: 3072
                 ecrRepoName: cmdfw.prod2.uf46msc-app
-                tag: 1.0.0
-                containerPort: 9000
-                hostPort: 9000
+                tag: 1.0.3
+                containerPort: -1
+                hostPort: -1
                 logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-app-service
                 streamPrefix: ${CDK_PFIX}-${CDK_ENV}-app
-                entryPoint:
                 environment:
                   AWS_SECRET_KEY: cmdfwmsc_cmdfw.prod2.01
                   HOST_SERVER: aws
@@ -42,13 +41,11 @@ ecs:
                 cpu: 0
                 memory: 1024
                 ecrRepoName: cmdfw.prod2.uf46msc-nginx
-                tag: 1.0.0
+                tag: 1.0.3
                 containerPort: 80
                 hostPort: 80
                 logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-nginx-service
                 streamPrefix: ${CDK_PFIX}-${CDK_ENV}-nginx
-                entryPoint:
-                environment:
             autoScaling:
               memUtilizationPercent: 75
               cpuUtilizationPercent: 75

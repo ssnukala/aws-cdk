@@ -187,60 +187,62 @@ public class EcsStackHandler implements AwsStackHandler {
         private TaskDefinition createTaskDefinition(final EcsModel ecsModel, final EcsModel.EcsServiceModel ecsServiceModel, final IVpc vpc) {
 
             EcsModel.EcsTaskModel ecsTaskModel = ecsServiceModel.getTask();
-
-
             IRole taskRole = Role.fromRoleArn(this, ecsServiceModel.getTask().getName(), ecsServiceModel.getTask().getRole());
 
-            TaskDefinition taskDefinition = new TaskDefinition(this, ecsTaskModel.getName() + "-task",
-                TaskDefinitionProps
-                    .builder()
+            FargateTaskDefinition taskDefinition = new FargateTaskDefinition(this, ecsTaskModel.getName() + "-task",
+                FargateTaskDefinitionProps.builder()
                     .executionRole(taskRole)
-                    .compatibility(Compatibility.EC2_AND_FARGATE)
                     .cpu(ecsServiceModel.getTask().getCpu())
-                    .memoryMiB(ecsServiceModel.getTask().getMemory())
-                    .networkMode(NetworkMode.AWS_VPC)
+                    .memoryLimitMiB(ecsServiceModel.getTask().getMemory())
                     .taskRole(taskRole)
                     .family(ecsTaskModel.getName())
                     .build());
 
              ecsTaskModel.getContainers().forEach(ecsContainerModel -> {
-                List<PortMapping> portMappings = new ArrayList<>();
-                portMappings.add(new PortMapping() {
-                    @Override
-                    public @NotNull Number getContainerPort() {
-                        return ecsContainerModel.getContainerPort();
-                    }
-
-                    @Override
-                    public @Nullable Number getHostPort() {
-                        return ecsContainerModel.getHostPort();
-                    }
-                });
                  IRepository repository = Repository.fromRepositoryName(this, ecsContainerModel.getName() + "-repo",
                          ecsContainerModel.getEcrRepoName());
                  EcrImage ecrImage = RepositoryImage.fromEcrRepository(repository, ecsContainerModel.getTag());
-
-                 taskDefinition.addContainer(ecsContainerModel.getName(),
-                         ContainerDefinitionOptions.builder()
-                                 .containerName(ecsContainerModel.getName())
-                                 .image(ecrImage)
-                                 .portMappings(portMappings)
-                                 .cpu(Integer.valueOf(ecsContainerModel.getCpu()))
-                                 .memoryLimitMiB(Integer.valueOf(ecsContainerModel.getMemory()))
-                                 .logging(LogDriver.awsLogs(
-                                         AwsLogDriverProps.builder()
-                                                 .logGroup(new LogGroup(this, ecsContainerModel.getName()+"-log",
-                                                         LogGroupProps.builder()
-                                                                 .logGroupName(ecsContainerModel.getLogGroup())
-                                                                 .retention(ecsTaskModel.getRetentionDays())
-                                                                 .removalPolicy(RemovalPolicy.DESTROY)
-                                                                 .build()))
-                                                 .streamPrefix(ecsContainerModel.getStreamPrefix())
+                 LogDriver logDriver = LogDriver.awsLogs(
+                         AwsLogDriverProps.builder()
+                                 .logGroup(new LogGroup(this, ecsContainerModel.getName()+"-log",
+                                         LogGroupProps.builder()
+                                                 .logGroupName(ecsContainerModel.getLogGroup())
+                                                 .retention(ecsTaskModel.getRetentionDays())
+                                                 .removalPolicy(RemovalPolicy.DESTROY)
                                                  .build()))
-                                 .entryPoint(ecsContainerModel.getEntryPoint())
-                                 .environment(ecsContainerModel.getEnvironment())
-                                 .build()
-                 );
+                                 .streamPrefix(ecsContainerModel.getStreamPrefix())
+                                 .build());
+
+                 ContainerDefinition containerDefinition = new ContainerDefinition(this,
+                                            ecsContainerModel.getName(),
+                         ContainerDefinitionProps
+                         .builder()
+                         .taskDefinition(taskDefinition)
+                         .containerName(ecsContainerModel.getName())
+                         .image(ecrImage)
+                         .cpu(Integer.valueOf(ecsContainerModel.getCpu()))
+                         .memoryLimitMiB(Integer.valueOf(ecsContainerModel.getMemory()))
+                         .logging(logDriver)
+                         .entryPoint(ecsContainerModel.getEntryPoint())
+                         .environment(ecsContainerModel.getEnvironment())
+                         .build());
+
+
+                 if( ecsContainerModel.getContainerPort() > 0 && ecsContainerModel.getHostPort() > 0) {
+                     log.info("inside IF.. name : {}, getHostPort : {}" , ecsContainerModel.getName(),  ecsContainerModel.getHostPort());
+                     containerDefinition.addPortMappings(new PortMapping() {
+                         @Override
+                         public @NotNull Number getContainerPort() {
+                             return ecsContainerModel.getContainerPort();
+                         }
+                         @Override
+                         public @Nullable Number getHostPort() {
+                             return ecsContainerModel.getHostPort();
+                         }
+                     });
+                     taskDefinition.setDefaultContainer(containerDefinition);
+                 }
+
             });
 
             Tags.of(taskDefinition).add("Name", ecsTaskModel.getName() + "-task");
