@@ -149,7 +149,9 @@ public class Ec2StackHandler implements AwsStackHandler {
                     .desiredCapacity(instanceConfigModel.getDesiredCap())
                     .minCapacity(instanceConfigModel.getMinCap())
                     .maxCapacity(instanceConfigModel.getMaxCap())
-                    .userData(UserData.custom(instanceConfigModel.getUserData()))
+                    .userData(UserData.forLinux(LinuxUserDataOptions.builder()
+                                    .shebang(instanceConfigModel.getUserData())
+                            .build()))
                     .build());
 
 //            StepScalingAction scalingAction = new StepScalingAction(this, instanceConfigModel.getName()+"-scaling",
