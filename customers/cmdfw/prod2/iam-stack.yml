@@ -175,6 +175,7 @@ policies:
                     - "application-autoscaling:Register*"
                     - "application-autoscaling:Put*"
                     - "application-autoscaling:Deregister*"
+                    - "autoscaling:PutScalingPolicy"
                 resources:
                     - "*"
                 conditions:
