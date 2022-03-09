@@ -7,13 +7,15 @@ import com.ppkn.cdk.config.Ec2ConfigModel;
 import com.ppkn.cdk.config.Parameters;
 import com.ppkn.cdk.config.StackEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Duration;
 import software.amazon.awscdk.core.Environment;
 import software.amazon.awscdk.core.StackProps;
-import software.amazon.awscdk.services.autoscaling.AutoScalingGroup;
-import software.amazon.awscdk.services.autoscaling.AutoScalingGroupProps;
+import software.amazon.awscdk.services.autoscaling.*;
+import software.amazon.awscdk.services.autoscaling.BlockDevice;
+import software.amazon.awscdk.services.autoscaling.BlockDeviceVolume;
 import software.amazon.awscdk.services.cloudwatch.*;
 import software.amazon.awscdk.services.cloudwatch.actions.Ec2Action;
 import software.amazon.awscdk.services.cloudwatch.actions.Ec2InstanceAction;
@@ -22,6 +24,7 @@ import software.amazon.awscdk.services.iam.IRole;
 import software.amazon.awscdk.services.iam.Role;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,6 +135,7 @@ public class Ec2StackHandler implements AwsStackHandler {
             AutoScalingGroup asg = new AutoScalingGroup(this, instanceConfigModel.getName(),
                 AutoScalingGroupProps
                     .builder()
+                    .blockDevices(getAsgVolume(instanceConfigModel))
                     .instanceType(getInstanceType(instanceConfigModel))
                     .machineImage(image)
                     .vpc(vpc)
@@ -147,9 +151,33 @@ public class Ec2StackHandler implements AwsStackHandler {
                     .maxCapacity(instanceConfigModel.getMaxCap())
                     .userData(UserData.custom(instanceConfigModel.getUserData()))
                     .build());
+
+//            StepScalingAction scalingAction = new StepScalingAction(this, instanceConfigModel.getName()+"-scaling",
+//                    StepScalingActionProps.builder()
+//                            .autoScalingGroup(asg)
+//                            .adjustmentType(AdjustmentType.EXACT_CAPACITY)
+//                            .build());
+//
+//            scalingAction.addAdjustment(AdjustmentTier.builder()
+//                            .adjustment(0)
+//                            .lowerBound(0)
+//                    .build());
             super.processTags(asg, instanceConfigModel);
         }
 
+        private List<BlockDevice> getAsgVolume(Ec2ConfigModel.Ec2Model instanceConfigModel) {
+            return Arrays.asList(new BlockDevice() {
+                @Override
+                public @NotNull String getDeviceName() {
+                    return instanceConfigModel.getBlockDeviceName();
+                }
+
+                @Override
+                public @NotNull BlockDeviceVolume getVolume() {
+                    return BlockDeviceVolume.ebs(instanceConfigModel.getBlockDeviceSize());
+                }
+            });
+        }
         private void createEc2(IVpc vpc, List<ISubnet> subnetList, IRole role, ISecurityGroup securityGroup,
                                       LookupMachineImage image, Ec2ConfigModel.Ec2Model instanceConfigModel) {
             Instance ec2Instance = new Instance(this, instanceConfigModel.getName(),
@@ -157,6 +185,7 @@ public class Ec2StackHandler implements AwsStackHandler {
                     .builder()
                     .instanceType(getInstanceType(instanceConfigModel))
                     .machineImage(image)
+                    .blockDevices(getEc2Volume(instanceConfigModel))
                     .vpc(vpc)
                     .securityGroup(securityGroup)
                     .role(role)
@@ -174,6 +203,19 @@ public class Ec2StackHandler implements AwsStackHandler {
             super.processTags(ec2Instance, instanceConfigModel);
         }
 
+        private List<software.amazon.awscdk.services.ec2.BlockDevice> getEc2Volume(Ec2ConfigModel.Ec2Model instanceConfigModel) {
+            return Arrays.asList(new software.amazon.awscdk.services.ec2.BlockDevice() {
+                @Override
+                public @NotNull String getDeviceName() {
+                    return instanceConfigModel.getBlockDeviceName();
+                }
+
+                @Override
+                public @NotNull software.amazon.awscdk.services.ec2.BlockDeviceVolume getVolume() {
+                    return software.amazon.awscdk.services.ec2.BlockDeviceVolume.ebs(instanceConfigModel.getBlockDeviceSize());
+                }
+            });
+        }
         private InstanceType getInstanceType(Ec2ConfigModel.Ec2Model instanceConfigModel) {
             InstanceClass iClass = null;
             for(InstanceClass instanceClass : InstanceClass.values()) {

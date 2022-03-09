@@ -30,6 +30,8 @@ public class Ec2ConfigModel extends AbstractConfigModel{
         private String ami;
         private String instanceType;
         private String instanceSize;
+        private String blockDeviceName;
+        private int blockDeviceSize;
         private String keypair;
         private String userData;
         private int desiredCap;

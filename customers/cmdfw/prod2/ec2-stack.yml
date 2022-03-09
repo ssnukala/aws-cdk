@@ -8,28 +8,84 @@ tags:
     org.name: ${CDK_ORG}
 
 ec2:
-    - name: ${CDK_PFIX}-${CDK_ENV}-bastian-ec2
-      vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
-      subnetType: public
-      sg: /${CDK_PFIX}/${CDK_ENV}/sg/bastian
-      role: /${CDK_PFIX}/${CDK_ENV}/iam/role/comp
-      ami: amzn2-ami-hvm-2.0.20210721.2-x86_64-gp2 # LinuxBastion-08-12-2021
-      instanceType: BURSTABLE2
-      instanceSize: NANO
-      keypair: ${CDK_PFIX}-${CDK_ENV}-ec2key1
-      autoScalingEnabled: true
-      userData: |
-          #!/bin/bash
-          sudo su - ec2-user
-          cd /home/ec2-user
-          mkdir -p .local/bin
-          sudo yum install -y ec2-instance-connect
-          sudo yum install -y docker
-          sudo service docker start
-          sudo usermod -a -G docker ec2-user
-          sudo yum install -y git
-          sudo curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m) -o /home/ec2-user/.local/bin/docker-compose
-          sudo chmod +x /home/ec2-user/.local/bin/docker-compose
-          source .bash_profile
-          sudo yum install -y socat
-          sudo yum update -y
+  - name: ${CDK_PFIX}-${CDK_ENV}-bastian-ec2
+    vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
+    subnetType: public
+    sg: /${CDK_PFIX}/${CDK_ENV}/sg/bastian
+    role: /${CDK_PFIX}/${CDK_ENV}/iam/role/comp
+    ami: amzn2-ami-hvm-2.0.20210721.2-x86_64-gp2 # LinuxBastion-08-12-2021
+    instanceType: BURSTABLE2
+    instanceSize: NANO
+    keypair: ${CDK_PFIX}-${CDK_ENV}-ec2key1
+    autoScalingEnabled: true
+    blockDeviceName: /dev/xvda
+    blockDeviceSize: 8
+    alarms:
+      - name: ${CDK_PFIX}-${CDK_ENV}-bastian-ec2-low-cpu-alarm
+        threshold: 5  # CPU below 5 percent
+        dataPoints: 1
+        action: STOP # TERMINATE, REBOOT
+        metricName: CPUUtilization
+        metricPeriod: 15
+    userData: |
+      #!/bin/bash
+      sudo su - ec2-user
+      cd /home/ec2-user
+      mkdir -p .local/bin
+      sudo yum install -y ec2-instance-connect
+      source .bash_profile
+      sudo yum update -y
+  - name: ${CDK_PFIX}-${CDK_ENV}-app-new
+    vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
+    subnetType: private
+    sg: /${CDK_PFIX}/${CDK_ENV}/sg/app
+    role: /${CDK_PFIX}/${CDK_ENV}/iam/role/comp
+    ami: amzn2-ami-hvm-2.0.20210721.2-x86_64-gp2
+    instanceType: BURSTABLE2
+    instanceSize: MICRO
+    keypair: ${CDK_PFIX}-${CDK_ENV}-ec2key1
+    autoScalingEnabled: true
+    blockDeviceName: /dev/xvda
+    blockDeviceSize: 20
+    userData: |
+      #!/bin/bash
+      sudo su - ec2-user
+      cd /home/ec2-user
+      mkdir -p .local/bin
+      sudo yum install -y ec2-instance-connect
+      sudo yum install -y docker
+      sudo service docker start
+      sudo usermod -a -G docker ec2-user
+      sudo yum install -y git
+      sudo curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m) -o /home/ec2-user/.local/bin/docker-compose
+      sudo chmod +x /home/ec2-user/.local/bin/docker-compose
+      source .bash_profile
+      sudo yum install -y socat
+      sudo yum update -y
+  - name: ${CDK_PFIX}-${CDK_ENV}-app-existing
+    vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
+    subnetType: private
+    sg: /${CDK_PFIX}/${CDK_ENV}/sg/app
+    role: /${CDK_PFIX}/${CDK_ENV}/iam/role/comp
+    ami: cmdfw-prod2-bastian-app.FullStack.1.0.3 # cmdfw-prod2-bastian-app.FullStack.1.0.3
+    instanceType: BURSTABLE2
+    instanceSize: MICRO
+    keypair: ${CDK_PFIX}-${CDK_ENV}-ec2key1
+    autoScalingEnabled: true
+    blockDeviceName: /dev/xvda
+    blockDeviceSize: 20
+    alarms:
+      - name: ${CDK_PFIX}-${CDK_ENV}-bastian-ec2-low-cpu-alarm
+        threshold: 5  # CPU below 5 percent
+        dataPoints: 1
+        action: STOP # TERMINATE, REBOOT
+        metricName: CPUUtilization
+        metricPeriod: 15
+    userData: |
+      #!/bin/bash
+      sudo su - ec2-user
+      sudo service docker start
+      cd /home/ec2-user/uf/uf464cmdfwmsc
+      docker-compose up -d
+      source .bash_profile
+      sudo yum update -y
