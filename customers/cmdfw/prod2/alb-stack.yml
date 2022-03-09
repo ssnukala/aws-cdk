@@ -7,7 +7,7 @@ tags:
     org.name: ${CDK_ORG}
 
 albs:
-    - name: ${CDK_PFIX}-${CDK_ENV}-external-ecs-alb
+    - name: ${CDK_PFIX}-${CDK_ENV}-ec2-alb
       vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
       ssmKey: /${CDK_PFIX}/${CDK_ENV}/alb/external/dns
       subnetType: public
@@ -19,6 +19,7 @@ albs:
             port: 80
             healthCheck: /web/v1/public/healthCheck
             intervalInSec: 120
+            type: INSTANCE
       listeners:
           - name: ${CDK_PFIX}-${CDK_ENV}-http-listner
             protocol: http
