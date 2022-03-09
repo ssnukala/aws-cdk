@@ -85,7 +85,16 @@ public class AlbStackHandler implements AwsStackHandler {
 
         private Map<String, ApplicationTargetGroup> createTargetGroups(final AlbModel albModel, final IVpc vpc) {
             Map<String, ApplicationTargetGroup> targetGroups = new HashMap<>();
+
+
             albModel.getTargetGroups().forEach(albTargetGroupModel -> {
+                TargetType targetType = TargetType.IP;
+                if( TargetType.INSTANCE.name().equals(albTargetGroupModel.getType())  ) {
+                    targetType = TargetType.INSTANCE;
+                }
+                else if( TargetType.LAMBDA.name().equals(albTargetGroupModel.getType())  ) {
+                    targetType = TargetType.LAMBDA;
+                }
                 ApplicationTargetGroup targetGroup = new ApplicationTargetGroup(this, albTargetGroupModel.getName(),
                     ApplicationTargetGroupProps
                         .builder()
@@ -98,7 +107,7 @@ public class AlbStackHandler implements AwsStackHandler {
                             .interval(Duration.seconds(albTargetGroupModel.getIntervalInSec()))
                             .build())
                         .protocol(ApplicationProtocol.HTTP)
-                        .targetType(TargetType.IP)
+                        .targetType(targetType)
                         .build());
 
                 Tags.of(targetGroup).add("Name", albTargetGroupModel.getName());
