@@ -41,6 +41,7 @@ public class AlbModel extends AbstractConfigModel{
         private int port;
         private String protocol;
         private String healthCheck;
+        private String type;
         private int intervalInSec;
 
         public void processPlaceHolders(final Parameters parameters) {
