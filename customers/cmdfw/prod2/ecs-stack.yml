@@ -27,21 +27,23 @@ ecs:
                 cpu: 0
                 memory: 3072
                 ecrRepoName: cmdfw.prod2.uf46msc-app
-                tag: 1.0.7
+                tag: 1.0.9
                 containerPort: -1
                 hostPort: -1
                 logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-app-service
                 streamPrefix: ${CDK_PFIX}-${CDK_ENV}-app
                 environment:
-                  AWS_SECRET_KEY: cmdfwmsc_cmdfw.prod2.01
-                  HOST_SERVER: aws
+                  AWS_SECRET_KEY: cmdfw.prod2.01
+                  HOST_SERVER: fargate
                   SKIP_PERMISSION_CHECK: true
                   UF_MODE: production
               - name: nginx
                 cpu: 0
                 memory: 1024
                 ecrRepoName: cmdfw.prod2.uf46msc-nginx
-                tag: 1.0.7
+                environment:
+                  PHP_HOST: php-fpm
+                tag: 1.0.9
                 containerPort: 80
                 hostPort: 80
                 logGroup: /${CDK_PFIX}-${CDK_ENV}-ecs-nginx-service
