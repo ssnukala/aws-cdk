@@ -9,6 +9,7 @@ tags:
 
 ec2:
   - name: ${CDK_PFIX}-${CDK_ENV}-bastian-ec2
+    ssmKey: /${CDK_PFIX}/${CDK_ENV}/asg/bastian
     vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
     subnetType: public
     sg: /${CDK_PFIX}/${CDK_ENV}/sg/bastian
@@ -36,6 +37,8 @@ ec2:
       source .bash_profile
       sudo yum update -y
   - name: ${CDK_PFIX}-${CDK_ENV}-app-new
+    ssmKey: /${CDK_PFIX}/${CDK_ENV}/asg/appNew
+    targetGroupSsmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/web
     vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
     subnetType: private
     sg: /${CDK_PFIX}/${CDK_ENV}/sg/app
@@ -48,21 +51,24 @@ ec2:
     blockDeviceName: /dev/xvda
     blockDeviceSize: 20
     userData: |
-      #!/bin/bash
-      sudo su - ec2-user
-      cd /home/ec2-user
-      mkdir -p .local/bin
-      sudo yum install -y ec2-instance-connect
-      sudo yum install -y docker
-      sudo service docker start
-      sudo usermod -a -G docker ec2-user
-      sudo yum install -y git
-      sudo curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m) -o /home/ec2-user/.local/bin/docker-compose
-      sudo chmod +x /home/ec2-user/.local/bin/docker-compose
-      source .bash_profile
-      sudo yum install -y socat
-      sudo yum update -y
+        #!/bin/bash
+        sudo su - ec2-user
+        cd /home/ec2-user
+        mkdir -p .local/bin
+        sudo yum install -y ec2-instance-connect
+        sudo yum install -y docker
+        sudo service docker start
+        sudo usermod -a -G docker ec2-user
+        sudo yum install -y git
+        sudo curl -L https://github.com/docker/compose/releases/download/1.22.0/docker-compose-$(uname -s)-$(uname -m) -o /home/ec2-user/.local/bin/docker-compose
+        sudo chmod +x /home/ec2-user/.local/bin/docker-compose
+        source .bash_profile
+        sudo yum install -y socat
+        sudo yum update -y
+
   - name: ${CDK_PFIX}-${CDK_ENV}-app-existing
+    ssmKey: /${CDK_PFIX}/${CDK_ENV}/asg/appExisting
+    targetGroupSsmKey: /${CDK_PFIX}/${CDK_ENV}/alb/tg/web
     vpc: ${CDK_PFIX}-${CDK_ENV}-vpc
     subnetType: private
     sg: /${CDK_PFIX}/${CDK_ENV}/sg/app
@@ -82,10 +88,10 @@ ec2:
         metricName: CPUUtilization
         metricPeriod: 15
     userData: |
-      #!/bin/bash
-      sudo su - ec2-user
-      sudo service docker start
-      cd /home/ec2-user/uf/uf464cmdfwmsc
-      docker-compose up -d
-      source .bash_profile
-      sudo yum update -y
+        #!/bin/bash
+        sudo su - ec2-user
+        sudo service docker start
+        cd /home/ec2-user/uf/uf464cmdfwmsc
+        docker-compose up -d
+        source .bash_profile
+        sudo yum update -y
