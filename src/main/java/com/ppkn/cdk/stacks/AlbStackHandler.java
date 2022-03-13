@@ -6,6 +6,8 @@ import com.ppkn.cdk.config.*;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
 import software.amazon.awscdk.core.*;
+import software.amazon.awscdk.services.autoscaling.AutoScalingGroup;
+import software.amazon.awscdk.services.autoscaling.IAutoScalingGroup;
 import software.amazon.awscdk.services.ec2.*;
 import software.amazon.awscdk.services.elasticloadbalancingv2.*;
 import software.amazon.awscdk.services.iam.ManagedPolicy;
@@ -88,27 +90,26 @@ public class AlbStackHandler implements AwsStackHandler {
 
 
             albModel.getTargetGroups().forEach(albTargetGroupModel -> {
+
                 TargetType targetType = TargetType.IP;
                 if( TargetType.INSTANCE.name().equals(albTargetGroupModel.getType())  ) {
                     targetType = TargetType.INSTANCE;
                 }
-                else if( TargetType.LAMBDA.name().equals(albTargetGroupModel.getType())  ) {
-                    targetType = TargetType.LAMBDA;
-                }
-                ApplicationTargetGroup targetGroup = new ApplicationTargetGroup(this, albTargetGroupModel.getName(),
-                    ApplicationTargetGroupProps
-                        .builder()
-                        .vpc(vpc)
-                        .targetGroupName(albTargetGroupModel.getName())
-                        .port(albTargetGroupModel.getPort())
-                        .healthCheck(HealthCheck.builder()
-                            .path(albTargetGroupModel.getHealthCheck())
-                            .port(String.valueOf(albTargetGroupModel.getPort()))
-                            .interval(Duration.seconds(albTargetGroupModel.getIntervalInSec()))
-                            .build())
-                        .protocol(ApplicationProtocol.HTTP)
-                        .targetType(targetType)
-                        .build());
+                ApplicationTargetGroup targetGroup = new ApplicationTargetGroup(this,
+                        albTargetGroupModel.getName(),
+                        ApplicationTargetGroupProps
+                                .builder()
+                                .vpc(vpc)
+                                .targetGroupName(albTargetGroupModel.getName())
+                                .port(albTargetGroupModel.getPort())
+                                .healthCheck(HealthCheck.builder()
+                                        .path(albTargetGroupModel.getHealthCheck())
+                                        .port(String.valueOf(albTargetGroupModel.getPort()))
+                                        .interval(Duration.seconds(albTargetGroupModel.getIntervalInSec()))
+                                        .build())
+                                .protocol(ApplicationProtocol.HTTP)
+                                .targetType(targetType)
+                                .build());
 
                 Tags.of(targetGroup).add("Name", albTargetGroupModel.getName());
                 albConfigModel.getTags().forEach((key, value) -> {
@@ -121,7 +122,6 @@ public class AlbStackHandler implements AwsStackHandler {
                     .value(targetGroup.getTargetGroupArn())
                     .build());
                 targetGroups.put(albTargetGroupModel.getName(), targetGroup);
-
             });
 
             return targetGroups;

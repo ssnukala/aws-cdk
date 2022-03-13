@@ -17,13 +17,19 @@ import software.amazon.awscdk.services.autoscaling.*;
 import software.amazon.awscdk.services.autoscaling.BlockDevice;
 import software.amazon.awscdk.services.autoscaling.BlockDeviceVolume;
 import software.amazon.awscdk.services.cloudwatch.*;
+import software.amazon.awscdk.services.cloudwatch.actions.AutoScalingAction;
 import software.amazon.awscdk.services.cloudwatch.actions.Ec2Action;
 import software.amazon.awscdk.services.cloudwatch.actions.Ec2InstanceAction;
 import software.amazon.awscdk.services.ec2.*;
+import software.amazon.awscdk.services.elasticloadbalancingv2.ApplicationTargetGroup;
+import software.amazon.awscdk.services.elasticloadbalancingv2.IApplicationTargetGroup;
+import software.amazon.awscdk.services.elasticloadbalancingv2.TargetGroupAttributes;
 import software.amazon.awscdk.services.iam.IRole;
 import software.amazon.awscdk.services.iam.Role;
+import software.amazon.awssdk.utils.StringUtils;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -132,9 +138,11 @@ public class Ec2StackHandler implements AwsStackHandler {
 
         private void createEc2WithAsg(IVpc vpc, List<ISubnet> subnetList, IRole role, ISecurityGroup securityGroup,
                                       LookupMachineImage image, Ec2ConfigModel.Ec2Model instanceConfigModel) {
+
             AutoScalingGroup asg = new AutoScalingGroup(this, instanceConfigModel.getName(),
                 AutoScalingGroupProps
                     .builder()
+                    .autoScalingGroupName(instanceConfigModel.getName())
                     .blockDevices(getAsgVolume(instanceConfigModel))
                     .instanceType(getInstanceType(instanceConfigModel))
                     .machineImage(image)
@@ -149,10 +157,19 @@ public class Ec2StackHandler implements AwsStackHandler {
                     .desiredCapacity(instanceConfigModel.getDesiredCap())
                     .minCapacity(instanceConfigModel.getMinCap())
                     .maxCapacity(instanceConfigModel.getMaxCap())
-                    .userData(UserData.forLinux(LinuxUserDataOptions.builder()
-                                    .shebang(instanceConfigModel.getUserData())
-                            .build()))
+                    .userData(UserData.custom(instanceConfigModel.getUserData()))
                     .build());
+
+            if( !StringUtils.isEmpty(instanceConfigModel.getTargetGroupSsmKey())) {
+
+                String tgArn = super.getSsmStringParameterV2(ec2ConfigModel.getRegion(), instanceConfigModel.getTargetGroupSsmKey());
+                IApplicationTargetGroup targetGroup = ApplicationTargetGroup.fromTargetGroupAttributes(this,
+                        instanceConfigModel.getName()+"-tg", TargetGroupAttributes.builder()
+                                .targetGroupArn(tgArn)
+                                .build());
+                asg.attachToApplicationTargetGroup(targetGroup);
+            }
+
 
 //            StepScalingAction scalingAction = new StepScalingAction(this, instanceConfigModel.getName()+"-scaling",
 //                    StepScalingActionProps.builder()
@@ -164,6 +181,12 @@ public class Ec2StackHandler implements AwsStackHandler {
 //                            .adjustment(0)
 //                            .lowerBound(0)
 //                    .build());
+
+            super.putSsmStringParameter(SsmConfigModel
+                    .builder()
+                    .ssmKey(instanceConfigModel.getSsmKey())
+                    .value(asg.getAutoScalingGroupArn())
+                    .build());
             super.processTags(asg, instanceConfigModel);
         }
 
@@ -202,6 +225,11 @@ public class Ec2StackHandler implements AwsStackHandler {
 
             createAlarm(ec2Instance, instanceConfigModel);
 
+            super.putSsmStringParameter(SsmConfigModel
+                    .builder()
+                    .ssmKey(instanceConfigModel.getSsmKey())
+                    .value(ec2Instance.getInstanceId())
+                    .build());
             super.processTags(ec2Instance, instanceConfigModel);
         }
 

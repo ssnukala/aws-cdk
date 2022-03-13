@@ -38,6 +38,7 @@ public class Ec2ConfigModel extends AbstractConfigModel{
         private int minCap;
         private int maxCap;
         private boolean autoScalingEnabled = true;
+        private String targetGroupSsmKey;
         private List<Ec2AlarmModel> alarms;
 
         public void processPlaceHolders(final Parameters parameters) {
@@ -47,6 +48,7 @@ public class Ec2ConfigModel extends AbstractConfigModel{
             this.sg = replacePlaceHolders(this.sg);
             this.role = replacePlaceHolders(this.role);
             this.keypair = replacePlaceHolders(this.keypair);
+            this.targetGroupSsmKey = replacePlaceHolders(this.targetGroupSsmKey);
 
             if( alarms != null && !alarms.isEmpty()) {
                 alarms.forEach(ec2AlarmModel -> ec2AlarmModel.processPlaceHolders(parameters));
